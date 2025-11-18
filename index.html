@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rise Online Tracker</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    <!-- Export libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- Chart library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header with Timers -->
+        <header class="header">
+            <h1>Rise Online Tracker</h1>
+            <div class="user-info">
+                <span id="user-displayname"></span>
+                <button onclick="logout()" class="logout-btn">Logout</button>
+            </div>
+            <div class="firebase-status">
+                <span id="firebase-status-icon" class="status-icon">●</span>
+                <span id="firebase-status-text">Connecting...</span>
+            </div>
+            <div class="date-selection">
+                <label>Select Date:</label>
+                <input type="date" id="selectedDate" onchange="loadDataForDate()">
+                <button onclick="setToday()">Today</button>
+            </div>
+            <div class="timers">
+                <div class="timer-box">
+                    <label>Countdown:</label>
+                    <div class="countdown-display">
+                        <input type="time" id="countdownInput" />
+                        <button onclick="startCountdown()">Start</button>
+                        <button onclick="resetCountdown()">Reset</button>
+                    </div>
+                    <div id="countdownTimer" class="timer-value">00:00:00</div>
+                </div>
+                <div class="timer-box">
+                    <label>Stopwatch:</label>
+                    <div class="stopwatch-controls">
+                        <button onclick="startStopwatch()">Start</button>
+                        <button onclick="pauseStopwatch()">Pause</button>
+                        <button onclick="resetStopwatch()">Reset</button>
+                        <button onclick="generatePlayerReport('main')">📊 My Report</button>
+                    </div>
+                    <div id="stopwatchTimer" class="timer-value">00:00:00</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Navigation Tabs -->
+        <nav class="main-tabs">
+            <button class="tab-btn active" onclick="openMainTab('gathering')">Gathering</button>
+            <button class="tab-btn" onclick="openMainTab('events')">Events</button>
+            <button class="tab-btn" onclick="openMainTab('upgrade')">Upgrade</button>
+            <button class="tab-btn" onclick="openMainTab('other')">Other</button>
+            <button class="tab-btn" onclick="openMainTab('farm')">Farm</button>
+            <button class="tab-btn" onclick="openMainTab('reports')">Reports</button>
+            <button class="tab-btn" onclick="openMainTab('usefulinfo')">Useful Information</button>
+            <button class="tab-btn" onclick="openMainTab('admin')">Admin</button>
+        </nav>
+
+        <!-- Gathering Tab -->
+        <div id="gathering" class="main-tab-content active">
+            <h2>Gathering Activities</h2>
+            
+            <!-- Profession Tabs -->
+            <div class="sub-tabs">
+                <button class="sub-tab-btn active" onclick="openProfessionTab('lumbering')">Woodcutting</button>
+                <button class="sub-tab-btn" onclick="openProfessionTab('mining')">Mining</button>
+                <button class="sub-tab-btn" onclick="openProfessionTab('quarrying')">Quarrying</button>
+                <button class="sub-tab-btn" onclick="openProfessionTab('archaeology')">Archaeology</button>
+                <button class="sub-tab-btn" onclick="openProfessionTab('fishing')">Fishing</button>
+                <button class="sub-tab-btn" onclick="openProfessionTab('harvesting')">Harvesting</button>
+                <button class="sub-tab-btn" onclick="openProfessionTab('skinning')">Skinning</button>
+                <button class="sub-tab-btn" onclick="openProfessionTab('herbalism')">Herbalism</button>
+            </div>
+
+            <!-- Lumbering -->
+            <div id="lumbering" class="profession-content active">
+                <h3>Woodcutting</h3>
+                <div class="gathering-form">
+                    <div class="time-input">
+                        <label>Gathering Time (minutes):</label>
+                        <input type="number" id="lumbering-time" min="0" placeholder="Minutes spent gathering">
+                    </div>
+                    <div class="materials-grid">
+                        <div class="material-item">
+                            <label>Oak Wood:</label>
+                            <input type="number" id="oak-wood" min="0" placeholder="Amount">
+                            <input type="number" class="price-input" placeholder="Price per unit">
+                        </div>
+                        <div class="material-item">
+                            <label>Pine Wood:</label>
+                            <input type="number" id="pine-wood" min="0" placeholder="Amount">
+                            <input type="number" class="price-input" placeholder="Price per unit">
+                        </div>
+                        <div class="material-item">
+                            <label>Aspen Wood:</label>
+                            <input type="number" id="aspen-wood" min="0" placeholder="Amount">
+                            <input type="number" class="price-input" placeholder="Price per unit">
+                        </div>
+                        <div class="material-item">
+                            <label>Birch Wood:</label>
+                            <input type="number" id="birch-wood" min="0" placeholder="Amount">
+                            <input type="number" class="price-input" placeholder="Price per unit">
+                        </div>
+                        <div class="material-item">
+                            <label>Holywood:</label>
+                            <input type="number" id="sacred-wood" min="0" placeholder="Amount">
+                            <input type="number" class="price-input" placeholder="Price per unit">
+                        </div>
+                        <div class="material-item">
+                            <label>FireflyWood:</label>
+                            <input type="number" id="firefly-wood" min="0" placeholder="Amount">
+                            <input type="number" class="price-input" placeholder="Price per unit">
+                        </div>
+                        <div class="material-item">
+                            <label>Soulsage:</label>
+                            <input type="number" id="sage-wood" min="0" placeholder="Amount">
+                            <input type="number" class="price-input" placeholder="Price per unit">
+                        </div>
+                    </div>
+                    <!-- Summary Section -->
+                    <!--
+                    <div class="summary-section">
+                        <h4>Material Summary</h4>
+                        <div id="lumbering-summary" class="summary-list"></div>
+                    </div>
+                    -->
+                    <button class="save-btn" onclick="saveGathering('lumbering')">Save Woodcutting Data</button>
+                </div>
+            </div>
+
+            <!-- Mining -->
+            <div id="mining" class="profession-content">
+                <h3>Mining</h3>
+                <div class="gathering-form">
+                    <div class="time-input">
+                        <label>Gathering Time (minutes):</label>
+                        <input type="number" id="mining-time" min="0" placeholder="Minutes spent gathering">
+                    </div>
+                    <div class="materials-grid">
+                        <div class="material-item">
+                            <label>Copper Ore:</label>
+                            <input type="number" id="copper-ore" min="0" placeholder="Amount">
+                            <input type="number" class="price-input" placeholder="Price per unit">
+                        </div>
+                        <div class="material-item">
+                            <label>Iron Ore:</label>
+                            <input type="number" id="iron-ore" min="0" placeholder="Amount">
+                            <input type="number" class="price-input" placeholder="Price per unit">
+                        </div>
+                        <div class="material-item">
+                            <label>Titanium Ore:</label>
+                            <input type="number" id="titanium-ore" min="0" placeholder="Amount">
+                            <input type="number" class="price-input" placeholder="Price per unit">
+                        </div>
+                        <div class="material-item">
+                            <label>Gold Ore:</label>
+                            <input type="number" id="gold-ore" min="0" placeholder="Amount">
+                            <input type="number" class="price-input" placeholder="Price per unit">
+                        </div>
+                        <div class="material-item">
+                            <label>Silver Dust:</label>
+                            <input type="number" id="silver-dust" min="0" placeholder="Amount">
+                            <input type="number" class="price-input" placeholder="Price per unit">
+                        </div>
+                        <div class="material-item">
+                            <label>Gold Dust:</label>
+                            <input type="number" id="gold-dust" min="0" placeholder="Amount">
+                            <input type="number" class="price-input" placeholder="Price per unit">
+                        </div>
+                    </div>
+                    <!-- Summary Section -->
+                    <!--
+                    <div class="summary-section">
+                        <h4>Material Summary</h4>
+                        <div id="mining-summary" class="summary-list"></div>
+                    </div>
+                    -->
+                    <button class="save-btn" onclick="saveGathering('mining')">Save Mining Data</button>
+                </div>
+            </div>
+
+            <!-- Quarrying -->
+            <div id="quarrying" class="profession-content">
+                <h3>Quarrying</h3>
+                <div class="gathering-form">
+                    <div class="time-input">
+                        <label>Gathering Time (minutes):</label>
+                        <input type="number" id="quarrying-time" min="0" placeholder="Minutes spent gathering">
+                    </div>
+                    <div class="materials-grid">
+                        <div class="material-item">
+                            <label>Rough Stone:</label>
+                            <input type="number" id="raw-stone" min="0" placeholder="Amount">
+                            <input type="number" class="price-input" placeholder="Price per unit">
+                        </div>
+                        <div class="material-item">
+                            <label>Marble:</label>
+                            <input type="number" id="marble" min="0" placeholder="Amount">
+                            <input type="number" class="price-input" placeholder="Price per unit">
+                        </div>
+                        <div class="material-item">
+                            <label>Granite:</label>
+                            <input type="number" id="granite" min="0" placeholder="Amount">
+                            <input type="number" class="price-input" placeholder="Price per unit">
+                        </div>
+                    </div>
+                    <!-- Summary Section -->
+                    <!--
+                    <div class="summary-section">
+                        <h4>Material Summary</h4>
+                        <div id="quarrying-summary" class="summary-list"></div>
+                    </div>
+                    -->
+                    <button class="save-btn" onclick="saveGathering('quarrying')">Save Quarrying Data</button>
+                </div>
+            </div>
+
+            <!-- Archaeology -->
+            <div id="archaeology" class="profession-content">
+                <h3>Archaeology</h3>
+                <div class="gathering-form">
+                    <div class="time-input">
+                        <label>Gathering Time (minutes):</label>
+                        <input type="number" id="archaeology-time" min="0" placeholder="Minutes spent gathering">
+                    </div>
+                    <div class="materials-grid">
+                        <div class="material-item">
+                            <label>Crude Ruby:</label>
+                            <input type="number" id="raw-ruby" min="0" placeholder="Amount">
+                            <input type="number" class="price-input" placeholder="Price per unit">
+                        </div>
+                        <div class="material-item">
+                            <label>Crude Sapphire:</label>
+                            <input type="number" id="raw-sapphire" min="0" placeholder="Amount">
+                            <input type="number" class="price-input" placeholder="Price per unit">
+                        </div>
+                        <div class="material-item">
+                            <label>Crude Amber:</label>
+                            <input type="number" id="raw-amber" min="0" placeholder="Amount">
+                            <input type="number" class="price-input" placeholder="Price per unit">
+                        </div>
+                        <div class="material-item">
+                            <label>Crude Amethyst:</label>
+                            <input type="number" id="raw-amethyst" min="0" placeholder="Amount">
+                            <input type="number" class="price-input" placeholder="Price per unit">
+                        </div>
+                        <div class="material-item">
+                            <label>Crude Emerald:</label>
+                            <input type="number" id="raw-emerald" min="0" placeholder="Amount">
+                            <input type="number" class="price-input" placeholder="Price per unit">
+                        </div>
+                        <div class="material-item">
+                            <label>Crude Topaz:</label>
+                            <input type="number" id="raw-topaz" min="0" placeholder="Amount">
+                            <input type="number" class="price-input" placeholder="Price per unit">
+                        </div>
+                    </div>
+                    <!-- Summary Section -->
+                    <!--
+                    <div class="summary-section">
+                        <h4>Material Summary</h4>
+                        <div id="archaeology-summary" class="summary-list"></div>
+                    </div>
+                    -->
+                    <button class="save-btn" onclick="saveGathering('archaeology')">Save Archaeology Data</button>
+                </div>
+            </div>
+
+            <!-- Fishing -->
+            <div id="fishing" class="profession-content">
+                <h3>Fishing</h3>
+                <div class="gathering-form">
+                    <div class="time-input">
+                        <label>Gathering Time (minutes):</label>
+                        <input type="number" id="fishing-time" min="0" placeholder="Minutes spent gathering">
+                    </div>
+                    <div class="materials-grid">
+                        <div class="material-item">
+                            <label>Fish (Common):</label>
+                            <input type="number" id="fish-common" min="0" placeholder="Amount">
+                            <input type="number" class="price-input" placeholder="Price per unit">
+                        </div>
+                    </div>
+                    <!-- Summary Section -->
+                    <!--
+                    <div class="summary-section">
+                        <h4>Material Summary</h4>
+                        <div id="fishing-summary" class="summary-list"></div>
+                    </div>
+                    -->
+                    <button class="save-btn" onclick="saveGathering('fishing')">Save Fishing Data</button>
+                </div>
+            </div>
+
+            <!-- Harvesting -->
+            <div id="harvesting" class="profession-content">
+                <h3>Harvesting</h3>
+                <div class="gathering-form">
+                    <div class="time-input">
+                        <label>Gathering Time (minutes):</label>
+                        <input type="number" id="harvesting-time" min="0" placeholder="Minutes spent gathering">
+                    </div>
+                    <div class="materials-grid">
+                        <div class="material-item">
+                            <label>Corn:</label>
+                            <input type="number" id="corn" min="0" placeholder="Amount">
+                            <input type="number" class="price-input" placeholder="Price per unit">
+                        </div>
+                        <div class="material-item">
+                            <label>Carrot:</label>
+                            <input type="number" id="carrot" min="0" placeholder="Amount">
+                            <input type="number" class="price-input" placeholder="Price per unit">
+                        </div>
+                        <div class="material-item">
+                            <label>Potato:</label>
+                            <input type="number" id="potato" min="0" placeholder="Amount">
+                            <input type="number" class="price-input" placeholder="Price per unit">
+                        </div>
+                        <div class="material-item">
+                            <label>Tomato:</label>
+                            <input type="number" id="tomato" min="0" placeholder="Amount">
+                            <input type="number" class="price-input" placeholder="Price per unit">
+                        </div>
+                        <div class="material-item">
+                            <label>Cotton:</label>
+                            <input type="number" id="cotton" min="0" placeholder="Amount">
+                            <input type="number" class="price-input" placeholder="Price per unit">
+                        </div>
+                    </div>
+                    <!-- Summary Section -->
+                    <!--
+                    <div class="summary-section">
+                        <h4>Material Summary</h4>
+                        <div id="harvesting-summary" class="summary-list"></div>
+                    </div>
+                    -->
+                    <button class="save-btn" onclick="saveGathering('harvesting')">Save Harvesting Data</button>
+                </div>
+            </div>
+
+            <!-- Skinning -->
+            <div id="skinning" class="profession-content">
+                <h3>Skinning</h3>
+                <div class="gathering-form">
+                    <div class="time-input">
+                        <label>Gathering Time (minutes):</label>
+                        <input type="number" id="skinning-time" min="0" placeholder="Minutes spent gathering">
+                    </div>
+                    <div class="materials-grid">
+                        <div class="material-item">
+                            <label>Hide:</label>
+                            <input type="number" id="hide" min="0" placeholder="Amount">
+                            <input type="number" class="price-input" placeholder="Price per unit">
+                        </div>
+                        <div class="material-item">
+                            <label>Leather:</label>
+                            <input type="number" id="leather" min="0" placeholder="Amount">
+                            <input type="number" class="price-input" placeholder="Price per unit">
+                        </div>
+                        <div class="material-item">
+                            <label>Thick Hide:</label>
+                            <input type="number" id="thick-hide" min="0" placeholder="Amount">
+                            <input type="number" class="price-input" placeholder="Price per unit">
+                        </div>
+                    </div>
+                    <!-- Summary Section -->
+                    <!--
+                    <div class="summary-section">
+                        <h4>Material Summary</h4>
+                        <div id="skinning-summary" class="summary-list"></div>
+                    </div>
+                    -->
+                    <button class="save-btn" onclick="saveGathering('skinning')">Save Skinning Data</button>
+                </div>
+            </div>
+
+            <!-- Herbalism -->
+            <div id="herbalism" class="profession-content">
+                <h3>Herbalism</h3>
+                <div class="gathering-form">
+                    <div class="time-input">
+                        <label>Gathering Time (minutes):</label>
+                        <input type="number" id="herbalism-time" min="0" placeholder="Minutes spent gathering">
+                    </div>
+                    <div class="materials-grid">
+                        <div class="material-item">
+                            <label>Herb (Common):</label>
+                            <input type="number" id="herb-common" min="0" placeholder="Amount">
+                            <input type="number" class="price-input" placeholder="Price per unit">
+                        </div>
+                    </div>
+                    <!-- Summary Section -->
+                    <!--
+                    <div class="summary-section">
+                        <h4>Material Summary</h4>
+                        <div id="herbalism-summary" class="summary-list"></div>
+                    </div>
+                    -->
+                    <button class="save-btn" onclick="saveGathering('herbalism')">Save Herbalism Data</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Events Tab -->
+        <div id="events" class="main-tab-content">
+            <h2>Events</h2>
+            
+            <!-- Event Sub-tabs -->
+            <div class="sub-tabs">
+                <button class="sub-tab-btn active" onclick="openEventTab('inferno')">Inferno Temple</button>
+                <button class="sub-tab-btn" onclick="openEventTab('crystal')">Crystal Fortress</button>
+                <button class="sub-tab-btn" onclick="openEventTab('deathmatch')">Deathmatch</button>
+                <button class="sub-tab-btn" onclick="openEventTab('mount')">Mount Race</button>
+                <button class="sub-tab-btn" onclick="openEventTab('blood')">Blood Valley</button>
+                <button class="sub-tab-btn" onclick="openEventTab('sevenfold')">Sevenfold</button>
+                <button class="sub-tab-btn" onclick="openEventTab('random')">Random Rewards</button>
+                <button class="sub-tab-btn" onclick="openEventTab('lucky')">Lucky Draw</button>
+            </div>
+
+            <!-- Inferno Temple -->
+            <div id="inferno" class="event-content active">
+                <h3>Inferno Temple</h3>
+                <div class="event-form">
+                    <div class="time-input">
+                        <label>Event Duration (minutes):</label>
+                        <input type="number" id="inferno-time" min="0" placeholder="Minutes spent">
+                    </div>
+                    <div class="materials-grid">
+                        <div class="material-item">
+                            <label>Onyx Crystal:</label>
+                            <input type="number" id="onyx-crystal" min="0" placeholder="Amount">
+                            <input type="number" class="price-input" placeholder="Price per unit">
+                        </div>
+                        <div class="material-item">
+                            <label>Red Crystal:</label>
+                            <input type="number" id="red-crystal" min="0" placeholder="Amount">
+                            <input type="number" class="price-input" placeholder="Price per unit">
+                        </div>
+                        <div class="material-item">
+                            <label>Yellow Crystal:</label>
+                            <input type="number" id="yellow-crystal" min="0" placeholder="Amount">
+                            <input type="number" class="price-input" placeholder="Price per unit">
+                        </div>
+                        <div class="material-item">
+                            <label>Green Crystal:</label>
+                            <input type="number" id="green-crystal" min="0" placeholder="Amount">
+                            <input type="number" class="price-input" placeholder="Price per unit">
+                        </div>
+                        <div class="material-item">
+                            <label>Silver Bar:</label>
+                            <input type="number" id="silver-ingot" min="0" placeholder="Amount">
+                            <input type="number" class="price-input" placeholder="Price per unit">
+                        </div>
+                    </div>
+                    <button class="save-btn" onclick="saveEvent('inferno')">Save Inferno Temple Data</button>
+                </div>
+            </div>
+
+            <!-- Crystal Fortress War -->
+            <div id="crystal" class="event-content">
+                <h3>Crystal Fortress War</h3>
+                <div class="event-form">
+                    <div class="time-input">
+                        <label>Event Duration (minutes):</label>
+                        <input type="number" id="crystal-time" min="0" placeholder="Minutes spent">
+                    </div>
+                    <div class="materials-grid">
+                        <div class="material-item">
+                            <label>Gold Chest:</label>
+                            <input type="number" id="gold-chest" min="0" placeholder="Amount">
+                            <input type="number" class="price-input" placeholder="Price per unit">
+                        </div>
+                    </div>
+                    <button class="save-btn" onclick="saveEvent('crystal')">Save Crystal Fortress Data</button>
+                </div>
+            </div>
+
+            <!-- Deathmatch -->
+            <div id="deathmatch" class="event-content">
+                <h3>Deathmatch</h3>
+                <div class="event-form">
+                    <div class="time-input">
+                        <label>Event Duration (minutes):</label>
+                        <input type="number" id="deathmatch-time" min="0" placeholder="Minutes spent">
+                    </div>
+                    <div class="materials-grid">
+                        <div class="material-item">
+                            <label>Chest of Heroes:</label>
+                            <input type="number" id="heroes-chest" min="0" placeholder="Amount">
+                            <input type="number" class="price-input" placeholder="Price per unit">
+                        </div>
+                        <div class="material-item">
+                            <label>Unique Rune:</label>
+                            <input type="number" id="unique-rune" min="0" placeholder="Amount">
+                            <input type="number" class="price-input" placeholder="Price per unit">
+                        </div>
+                        <div class="material-item">
+                            <label>Epic Rune:</label>
+                            <input type="number" id="epic-rune" min="0" placeholder="Amount">
+                            <input type="number" class="price-input" placeholder="Price per unit">
+                        </div>
+                        <div class="material-item">
+                            <label>Royal Chest:</label>
+                            <input type="number" id="dm-royal-chest" min="0" placeholder="Amount">
+                            <input type="number" class="price-input" placeholder="Price per unit">
+                        </div>
+                        <div class="material-item">
+                            <label>Elite Chest:</label>
+                            <input type="number" id="dm-elite-chest" min="0" placeholder="Amount">
+                            <input type="number" class="price-input" placeholder="Price per unit">
+                        </div>
+                    </div>
+                    <button class="save-btn" onclick="saveEvent('deathmatch')">Save Deathmatch Data</button>
+                </div>
+            </div>
+
+            <!-- Mount Race -->
+            <div id="mount" class="event-content">
+                <h3>Mount Race</h3>
+                <div class="event-form">
+                    <div class="time-input">
+                        <label>Event Duration (minutes):</label>
+                        <input type="number" id="mount-time" min="0" placeholder="Minutes spent">
+                    </div>
+                    <div class="materials-grid">
+                        <div class="material-item">
+                            <label>Royal Chest:</label>
+                            <input type="number" id="mr-royal-chest" min="0" placeholder="Amount">
+                            <input type="number" class="price-input" placeholder="Price per unit">
+                        </div>
+                    </div>
+                    <button class="save-btn" onclick="saveEvent('mount')">Save Mount Race Data</button>
+                </div>
+            </div>
+
+            <!-- Blood Valley -->
+            <div id="blood" class="event-content">
+                <h3>Blood Valley</h3>
+                <div class="event-form">
+                    <div class="time-input">
+                        <label>Event Duration (minutes):</label>
+                        <input type="number" id="blood-time" min="0" placeholder="Minutes spent">
+                    </div>
+                    <div class="materials-grid">
+                        <div class="material-item">
+                            <label>Royal Chest:</label>
+                            <input type="number" id="bv-royal-chest" min="0" placeholder="Amount">
+                            <input type="number" class="price-input" placeholder="Price per unit">
+                        </div>
+                        <div class="material-item">
+                            <label>Elite Chest:</label>
+                            <input type="number" id="bv-elite-chest" min="0" placeholder="Amount">
+                            <input type="number" class="price-input" placeholder="Price per unit">
+                        </div>
+                    </div>
+                    <button class="save-btn" onclick="saveEvent('blood')">Save Blood Valley Data</button>
+                </div>
+            </div>
+
+            <!-- Sevenfold -->
+            <div id="sevenfold" class="event-content">
+                <h3>Sevenfold</h3>
+                <div class="event-form">
+                    <div class="time-input">
+                        <label>Event Duration (minutes):</label>
+                        <input type="number" id="sevenfold-time" min="0" placeholder="Minutes spent">
+                    </div>
+                    <div class="materials-grid">
+                        <div class="material-item">
+                            <label>Soulstone of Oakenna:</label>
+                            <input type="number" id="soul-oakenna" min="0" placeholder="Amount">
+                            <input type="number" class="price-input" placeholder="Price per unit">
+                        </div>
+                        <div class="material-item">
+                            <label>Soulstone of Slythera:</label>
+                            <input type="number" id="soul-slythera" min="0" placeholder="Amount">
+                            <input type="number" class="price-input" placeholder="Price per unit">
+                        </div>
+                        <div class="material-item">
+                            <label>Soulstone of Aqualon:</label>
+                            <input type="number" id="soul-aqualon" min="0" placeholder="Amount">
+                            <input type="number" class="price-input" placeholder="Price per unit">
+                        </div>
+                        <div class="material-item">
+                            <label>Soulstone of Nightwatcher:</label>
+                            <input type="number" id="soul-nightwatcher" min="0" placeholder="Amount">
+                            <input type="number" class="price-input" placeholder="Price per unit">
+                        </div>
+                        <div class="material-item">
+                            <label>Soulstone of Nysira:</label>
+                            <input type="number" id="soul-nysira" min="0" placeholder="Amount">
+                            <input type="number" class="price-input" placeholder="Price per unit">
+                        </div>
+                        <div class="material-item">
+                            <label>Soulstone of Kalemor:</label>
+                            <input type="number" id="soul-kalemor" min="0" placeholder="Amount">
+                            <input type="number" class="price-input" placeholder="Price per unit">
+                        </div>
+                        <div class="material-item">
+                            <label>Soulstone of Lightwarden:</label>
+                            <input type="number" id="soul-lightwarden" min="0" placeholder="Amount">
+                            <input type="number" class="price-input" placeholder="Price per unit">
+                        </div>
+                    </div>
+                    <button class="save-btn" onclick="saveEvent('sevenfold')">Save Sevenfold Data</button>
+                </div>
+            </div>
+
+            <!-- Random Rewards -->
+            <div id="random" class="event-content">
+                <h3>Random Rewards</h3>
+                <div class="event-form">
+                    <div class="time-input">
+                        <label>Event Duration (minutes):</label>
+                        <input type="number" id="random-time" min="0" placeholder="Minutes spent">
+                    </div>
+                    <div class="materials-grid">
+                        <div class="material-item">
+                            <label>Celestial Chest:</label>
+                            <input type="number" id="celestial-chest" min="0" placeholder="Amount">
+                            <input type="number" class="price-input" placeholder="Price per unit">
+                        </div>
+                        <div class="material-item">
+                            <label>Gold Jade Chest:</label>
+                            <input type="number" id="gold-jade-chest" min="0" placeholder="Amount">
+                            <input type="number" class="price-input" placeholder="Price per unit">
+                        </div>
+                        <div class="material-item">
+                            <label>Royal Chest:</label>
+                            <input type="number" id="rr-royal-chest" min="0" placeholder="Amount">
+                            <input type="number" class="price-input" placeholder="Price per unit">
+                        </div>
+                        <div class="material-item">
+                            <label>Gold Chest:</label>
+                            <input type="number" id="rr-gold-chest" min="0" placeholder="Amount">
+                            <input type="number" class="price-input" placeholder="Price per unit">
+                        </div>
+                    </div>
+                    <button class="save-btn" onclick="saveEvent('random')">Save Random Rewards Data</button>
+                </div>
+            </div>
+
+            <!-- Lucky Draw -->
+            <div id="lucky" class="event-content">
+                <h3>Lucky Draw</h3>
+                <div class="event-form">
+                    <div class="time-input">
+                        <label>Event Duration (minutes):</label>
+                        <input type="number" id="lucky-time" min="0" placeholder="Minutes spent">
+                    </div>
+                    <div id="lucky-items-container">
+                        <!-- Dynamic items will be added here -->
+                    </div>
+                    <button class="add-btn" onclick="addLuckyItem()">+ Add Item</button>
+                    <button class="save-btn" onclick="saveEvent('lucky')">Save Lucky Draw Data</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upgrade Tab -->
+        <div id="upgrade" class="main-tab-content">
+            <h2>Upgrade Activities</h2>
+            <div class="upgrade-form">
+                <div class="time-input">
+                    <label>Time Spent (minutes):</label>
+                    <input type="number" id="upgrade-time" min="0" placeholder="Minutes spent">
+                </div>
+                <div id="upgrade-items-container">
+                    <!-- Dynamic upgrade items will be added here -->
+                </div>
+                <button class="add-btn" onclick="addUpgradeItem()">+ Add Upgrade Item</button>
+                <button class="save-btn" onclick="saveUpgrade()">Save Upgrade Data</button>
+            </div>
+        </div>
+
+        <!-- Other Tab -->
+        <div id="other" class="main-tab-content">
+            <h2>Other Activities</h2>
+            <div class="other-form">
+                <div class="time-input">
+                    <label>Time Spent (minutes):</label>
+                    <input type="number" id="other-time" min="0" placeholder="Minutes spent">
+                </div>
+                <div id="other-items-container">
+                    <!-- Dynamic other items will be added here -->
+                </div>
+                <button class="add-btn" onclick="addOtherItem()">+ Add Item</button>
+                <button class="save-btn" onclick="saveOther()">Save Other Data</button>
+            </div>
+        </div>
+
+        <!-- Farm Tab -->
+        <div id="farm" class="main-tab-content">
+            <h2>Farm Activities</h2>
+            
+            <!-- Farm Filters -->
+            <div class="farm-filters">
+                <div class="filter-group">
+                    <label>Filter by Type:</label>
+                    <select id="farm-type-filter" onchange="applyFarmFilters()">
+                        <option value="all">All Farms</option>
+                        <option value="solo">Solo Farms Only</option>
+                        <option value="team">Team Farms Only</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label>Search Player:</label>
+                    <input type="text" id="farm-player-search" placeholder="Enter player nickname..." oninput="applyFarmFilters()">
+                </div>
+                
+                <div class="filter-group">
+                    <label>Search Location:</label>
+                    <input type="text" id="farm-location-search" placeholder="Enter location..." oninput="applyFarmFilters()">
+                </div>
+                
+                <button class="clear-filters-btn" onclick="clearFarmFilters()">Clear Filters</button>
+            </div>
+            
+            <!-- Farm Type Selection -->
+            <div class="farm-type-selection">
+                <button class="farm-type-btn" onclick="openFarmType('solo')">➕ Add Solo Farm</button>
+                <button class="farm-type-btn" onclick="openFarmType('team')">👥 Add Team Farm</button>
+            </div>
+
+            <!-- Farm List -->
+            <div id="farm-list" class="farm-list">
+                <h3>Farm Records</h3>
+                <div id="farm-records-container">
+                    <!-- Farm records will be displayed here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Solo Farm Modal -->
+        <div id="solo-farm-modal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeFarmModal()">&times;</span>
+                <h2>Add Solo Farm</h2>
+                
+                <div class="form-group">
+                    <label>Farm Date:</label>
+                    <input type="date" id="solo-farm-date" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Farm Duration (minutes):</label>
+                    <input type="number" id="solo-farm-time" min="0" placeholder="Minutes spent farming">
+                </div>
+
+                <div class="form-group">
+                    <label>Farm Location:</label>
+                    <input type="text" id="solo-farm-location" placeholder="e.g., Dragon Valley, Ice Cave">
+                </div>
+
+                <h3>Items Dropped</h3>
+                <div id="solo-items-container">
+                    <!-- Items will be added here -->
+                </div>
+                <button class="add-btn" onclick="addSoloFarmItem()">+ Add Item</button>
+
+                <div class="modal-actions">
+                    <button class="save-btn" onclick="saveSoloFarm()">Save Solo Farm</button>
+                    <button class="cancel-btn" onclick="closeFarmModal()">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Team Farm Modal -->
+        <div id="team-farm-modal" class="modal">
+            <div class="modal-content large-modal">
+                <span class="close" onclick="closeFarmModal()">&times;</span>
+                <h2>Add Team Farm</h2>
+                
+                <div class="form-group">
+                    <label>Farm Date:</label>
+                    <input type="date" id="team-farm-date" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Farm Duration (minutes):</label>
+                    <input type="number" id="team-farm-time" min="0" placeholder="Minutes spent farming">
+                </div>
+
+                <div class="form-group">
+                    <label>Farm Location:</label>
+                    <input type="text" id="team-farm-location" placeholder="e.g., Dragon Valley, Ice Cave">
+                </div>
+
+                <h3>Team Members</h3>
+                <div id="team-members-container">
+                    <!-- Team members will be added here -->
+                </div>
+                <button class="add-btn" onclick="addTeamMember()">+ Add Team Member</button>
+
+                <h3>Items Dropped</h3>
+                <div id="team-items-container">
+                    <!-- Items will be added here -->
+                </div>
+                <button class="add-btn" onclick="addTeamFarmItem()">+ Add Item</button>
+
+                <div class="modal-actions">
+                    <button class="save-btn" onclick="saveTeamFarm()">Save Team Farm</button>
+                    <button class="cancel-btn" onclick="closeFarmModal()">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reports Tab -->
+        <div id="reports" class="main-tab-content">
+            <h2>Reports</h2>
+            
+            <div class="report-controls">
+                <div class="date-selector">
+                    <label>Start Date:</label>
+                    <input type="date" id="report-start-date">
+                    <label>End Date:</label>
+                    <input type="date" id="report-end-date">
+                </div>
+                <div class="report-type-selector">
+                    <button onclick="generateReport('daily')">Daily Report</button>
+                    <button onclick="generateReport('weekly')">Weekly Report</button>
+                    <button onclick="generateReport('monthly')">Monthly Report</button>
+                    <button onclick="generateReport('custom')">Custom Range</button>
+                </div>
+                <div class="export-buttons">
+                    <button onclick="exportToExcel()" class="export-btn excel-btn">📊 Export to Excel</button>
+                    <button onclick="exportToPDF()" class="export-btn pdf-btn">📄 Export to PDF</button>
+                    <button onclick="generateDetailedReport()" class="export-btn detailed-report-btn">📈 Detailed Report</button>
+                </div>
+            </div>
+
+            <div id="report-output" class="report-output">
+                <p>Select a date range and report type to generate a report.</p>
+            </div>
+        </div>
+
+        <!-- Admin Tab -->
+        <div id="admin" class="main-tab-content">
+            <h2>Admin Panel</h2>
+            
+            <div class="admin-sections">
+                <!-- Main Character Selection -->
+                <div class="admin-section">
+                    <h3>👤 Main Character</h3>
+                    <div class="admin-form">
+                        <div class="form-group">
+                            <label>Select Your Main Character:</label>
+                            <select id="main-character-select">
+                                <option value="">Select a player...</option>
+                            </select>
+                            <button class="add-btn" onclick="saveMainCharacter()">💾 Save</button>
+                        </div>
+                        <div id="current-main-character" class="form-group" style="display: none;">
+                            <label>Current Main Character:</label>
+                            <span id="current-main-character-name"></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Players Management -->
+                <div class="admin-section">
+                    <h3>👥 Player Management</h3>
+                    <div class="admin-form">
+                        <div class="form-group">
+                            <label>Add New Player:</label>
+                            <input type="text" id="new-player-name" placeholder="Enter player nickname">
+                            <button class="add-btn" onclick="addPlayer()">➕ Add Player</button>
+                        </div>
+                        
+                        <div class="admin-list">
+                            <h4>Existing Players:</h4>
+                            <div id="players-list" class="items-list">
+                                <!-- Players will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Items Management -->
+                <div class="admin-section">
+                    <h3>📦 Item Management</h3>
+                    <div class="admin-form">
+                        <div class="form-group">
+                            <label>Add New Item:</label>
+                            <input type="text" id="new-item-name" placeholder="Enter item name">
+                            <button class="add-btn" onclick="addItem()">➕ Add Item</button>
+                        </div>
+                        
+                        <div class="admin-list">
+                            <h4>Existing Items:</h4>
+                            <div id="items-list" class="items-list">
+                                <!-- Items will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Useful Information Tab -->
+        <div id="usefulinfo" class="main-tab-content">
+            <h2>Useful Information</h2>
+            
+            <!-- Subcategory Tabs -->
+            <div class="sub-tabs">
+                <button class="sub-tab-btn active" onclick="openUsefulInfoTab('event-calendar')">Event Calendar</button>
+                <button class="sub-tab-btn" onclick="openUsefulInfoTab('gathering-maps')">Gathering Maps</button>
+                <button class="sub-tab-btn" onclick="openUsefulInfoTab('gathering-guides')">Gathering Guides</button>
+                <button class="sub-tab-btn" onclick="openUsefulInfoTab('gathering-weapons')">Gathering Weapons</button>
+                <button class="sub-tab-btn" onclick="openUsefulInfoTab('cooking-recipes')">Cooking Recipes</button>
+            </div>
+
+            <!-- Event Calendar -->
+            <div id="event-calendar" class="usefulinfo-content active">
+                <h3>Event Calendar</h3>
+                <div class="usefulinfo-content-area">
+                    <p>Event schedule for all days of the week:</p>
+                    
+                    <div class="event-calendar-table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Event</th>
+                                    <th>Monday</th>
+                                    <th>Tuesday</th>
+                                    <th>Wednesday</th>
+                                    <th>Thursday</th>
+                                    <th>Friday</th>
+                                    <th>Saturday</th>
+                                    <th>Sunday</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Inferno Temple</td>
+                                    <td>08:00, 20:30</td>
+                                    <td>08:00, 20:30</td>
+                                    <td>08:00, 20:30</td>
+                                    <td>08:00, 20:30</td>
+                                    <td>08:00, 20:30</td>
+                                    <td>08:00, 20:30</td>
+                                    <td>08:00, 20:30</td>
+                                </tr>
+                                <tr>
+                                    <td>Crystal Fortress War</td>
+                                    <td>02:00, 14:00, 20:00</td>
+                                    <td>02:00, 14:00, 20:00</td>
+                                    <td>02:00, 14:00, 20:00</td>
+                                    <td>02:00, 14:00, 20:00</td>
+                                    <td>02:00, 14:00, 20:00</td>
+                                    <td>02:00, 14:00, 20:00</td>
+                                    <td>02:00, 14:00, 20:00</td>
+                                </tr>
+                                <tr>
+                                    <td>Deathmatch</td>
+                                    <td>03:00, 11:00, 17:00</td>
+                                    <td>03:00, 11:00, 17:00</td>
+                                    <td>03:00, 11:00, 17:00</td>
+                                    <td>03:00, 11:00, 17:00</td>
+                                    <td>03:00, 11:00, 17:00</td>
+                                    <td>03:00, 11:00, 17:00</td>
+                                    <td>03:00, 11:00, 17:00</td>
+                                </tr>
+                                <tr>
+                                    <td>Mount Race</td>
+                                    <td>06:00, 10:00, 15:00, 18:00</td>
+                                    <td>06:00, 10:00, 15:00, 18:00</td>
+                                    <td>06:00, 10:00, 15:00, 18:00</td>
+                                    <td>06:00, 10:00, 15:00, 18:00</td>
+                                    <td>06:00, 10:00, 15:00, 18:00</td>
+                                    <td>06:00, 10:00, 15:00, 18:00</td>
+                                    <td>06:00, 10:00, 15:00, 18:00</td>
+                                </tr>
+                                <tr>
+                                    <td>Blood Valley</td>
+                                    <td>-</td>
+                                    <td>-</td>
+                                    <td>22:00</td>
+                                    <td>-</td>
+                                    <td>22:00</td>
+                                    <td>-</td>
+                                    <td>22:00</td>
+                                </tr>
+                                <tr>
+                                    <td>Sevenfold</td>
+                                    <td>-</td>
+                                    <td>-</td>
+                                    <td>-</td>
+                                    <td>-</td>
+                                    <td>18:00, 00:01</td>
+                                    <td>-</td>
+                                    <td>18:00, 00:01</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Alarm Settings -->
+                    <div class="alarm-settings">
+                        <h4>Set Event Alarm</h4>
+                        <div class="alarm-form">
+                            <div class="form-group">
+                                <label for="alarm-event">Select Event:</label>
+                                <select id="alarm-event" onchange="updateAlarmTimes()">
+                                    <option value="">Choose an event</option>
+                                    <option value="Inferno Temple">Inferno Temple</option>
+                                    <option value="Crystal Fortress War">Crystal Fortress War</option>
+                                    <option value="Deathmatch">Deathmatch</option>
+                                    <option value="Mount Race">Mount Race</option>
+                                    <option value="Blood Valley">Blood Valley</option>
+                                    <option value="Sevenfold">Sevenfold</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="alarm-time">Event Time:</label>
+                                <select id="alarm-time">
+                                    <option value="">Select time</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="alarm-minutes">Alarm before (minutes):</label>
+                                <input type="number" id="alarm-minutes" min="1" max="60" value="5">
+                            </div>
+                            <button class="save-btn" onclick="setEventAlarm()">Set Alarm</button>
+                            <button class="btn btn-secondary" onclick="clearActiveAlarms()" style="margin-left: 10px;">Clear Alarms</button>
+                        </div>
+                        
+                        <div id="alarm-status"></div>
+                        
+                        <div class="active-alarms" id="active-alarms">
+                            <h4>Active Alarms</h4>
+                            <div id="alarms-list"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gathering Maps -->
+            <div id="gathering-maps" class="usefulinfo-content">
+                <h3>Gathering Maps</h3>
+                <div class="usefulinfo-content-area">
+                    <p>Gathering maps and location information will be displayed here.</p>
+                </div>
+            </div>
+
+            <!-- Gathering Guides -->
+            <div id="gathering-guides" class="usefulinfo-content">
+                <h3>Gathering Guides</h3>
+                <div class="usefulinfo-content-area">
+                    <p>Gathering guides and strategies will be displayed here.</p>
+                </div>
+            </div>
+
+            <!-- Gathering Weapons -->
+            <div id="gathering-weapons" class="usefulinfo-content">
+                <h3>Gathering Weapons</h3>
+                <div class="usefulinfo-content-area">
+                    <p>The best weapon and equipment recommendations for gathering will be displayed here.</p>
+                </div>
+            </div>
+
+            <!-- Cooking Recipes -->
+            <div id="cooking-recipes" class="usefulinfo-content">
+                <h3>Cooking Recipes</h3>
+                <div class="usefulinfo-content-area">
+                    <p>You can find cooking recipes and their properties here.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    
+    <!-- Detailed Report Modal -->
+    <div id="detailed-report-modal" class="modal">
+        <div class="modal-content detailed-report-content">
+            <span class="close" onclick="closeDetailedReportModal()">&times;</span>
+            <h2>Detailed Report</h2>
+            <div id="detailed-report-container">
+                <!-- Report content will be generated here -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Player Report Modal -->
+    <div id="player-report-modal" class="modal">
+        <div class="modal-content detailed-report-content">
+            <span class="close" onclick="closePlayerReportModal()">&times;</span>
+            <h2>Player Specific Report</h2>
+            <div id="player-report-container">
+                <!-- Player report content will be generated here -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Item Report Modal -->
+    <div id="item-report-modal" class="modal">
+        <div class="modal-content detailed-report-content">
+            <span class="close" onclick="closeItemReportModal()">&times;</span>
+            <h2>Item Specific Report</h2>
+            <div id="item-report-container">
+                <!-- Item report content will be generated here -->
+            </div>
+        </div>
+    </div>
+</body>
+</html>

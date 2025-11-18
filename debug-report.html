@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Report Functionality</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .debug-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .log {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Debug Report Functionality</h1>
+    
+    <div class="debug-section">
+        <h2>Test Elements</h2>
+        <button onclick="testElements()">Test Elements Exist</button>
+        <button onclick="testModalDisplay()">Test Modal Display</button>
+        <button onclick="testGenerateReport()">Test Generate Report</button>
+        <div id="log" class="log">Click buttons above to see logs...</div>
+    </div>
+    
+    <!-- Date Range Selection (from Reports tab) -->
+    <div class="report-controls">
+        <div class="date-selector">
+            <label>Start Date:</label>
+            <input type="date" id="report-start-date" value="2023-05-01">
+            <label>End Date:</label>
+            <input type="date" id="report-end-date" value="2023-05-31">
+        </div>
+    </div>
+    
+    <!-- Player Report Modal -->
+    <div id="player-report-modal" class="modal">
+        <div class="modal-content detailed-report-content">
+            <span class="close" onclick="closePlayerReportModal()">&times;</span>
+            <h2>Player Specific Report</h2>
+            <div id="player-report-container">
+                <!-- Player report content will be generated here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Debug log function
+        function debugLog(message) {
+            const logElement = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logElement.innerHTML += `[${timestamp}] ${message}\n`;
+            logElement.scrollTop = logElement.scrollHeight;
+            console.log(message);
+        }
+        
+        // Test if elements exist
+        function testElements() {
+            debugLog("Testing element existence...");
+            
+            const startDateElement = document.getElementById('report-start-date');
+            const endDateElement = document.getElementById('report-end-date');
+            const modalElement = document.getElementById('player-report-modal');
+            const containerElement = document.getElementById('player-report-container');
+            
+            debugLog(`Start date element: ${startDateElement ? 'FOUND' : 'NOT FOUND'}`);
+            debugLog(`End date element: ${endDateElement ? 'FOUND' : 'NOT FOUND'}`);
+            debugLog(`Modal element: ${modalElement ? 'FOUND' : 'NOT FOUND'}`);
+            debugLog(`Container element: ${containerElement ? 'FOUND' : 'NOT FOUND'}`);
+            
+            if (startDateElement) {
+                debugLog(`Start date value: ${startDateElement.value}`);
+            }
+            if (endDateElement) {
+                debugLog(`End date value: ${endDateElement.value}`);
+            }
+        }
+        
+        // Test modal display
+        function testModalDisplay() {
+            debugLog("Testing modal display...");
+            
+            const modal = document.getElementById('player-report-modal');
+            if (modal) {
+                modal.style.display = 'block';
+                debugLog("Modal displayed successfully");
+            } else {
+                debugLog("ERROR: Modal element not found");
+            }
+        }
+        
+        // Close player report modal
+        function closePlayerReportModal() {
+            debugLog("Closing player report modal");
+            const modal = document.getElementById('player-report-modal');
+            if (modal) {
+                modal.style.display = 'none';
+                debugLog("Modal closed successfully");
+            } else {
+                debugLog("ERROR: Modal element not found");
+            }
+        }
+        
+        // Test generate report
+        function testGenerateReport() {
+            debugLog("Testing generate report...");
+            generatePlayerReport('TestPlayer');
+        }
+        
+        // Mock functions from script.js
+        function getLocalDateString(date) {
+            return date.toISOString().split('T')[0];
+        }
+        
+        function formatNumber(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        }
+        
+        function capitalize(str) {
+            return str.charAt(0).toUpperCase() + str.slice(1);
+        }
+        
+        // Mock generatePlayerReport function
+        function generatePlayerReport(playerName) {
+            debugLog(`generatePlayerReport called with: ${playerName}`);
+            
+            let startDate = document.getElementById('report-start-date').value;
+            let endDate = document.getElementById('report-end-date').value;
+            
+            debugLog(`Selected dates: ${startDate} to ${endDate}`);
+            
+            // If no dates are selected, use a default range (last 30 days)
+            if (!startDate || !endDate) {
+                const today = new Date();
+                endDate = getLocalDateString(today);
+                const thirtyDaysAgo = new Date(today);
+                thirtyDaysAgo.setDate(today.getDate() - 30);
+                startDate = getLocalDateString(thirtyDaysAgo);
+                
+                // Set the dates in the UI so user can see what range is being used
+                document.getElementById('report-start-date').value = startDate;
+                document.getElementById('report-end-date').value = endDate;
+                
+                debugLog(`Using default dates: ${startDate} to ${endDate}`);
+            }
+            
+            // Mock data for testing
+            const mockData = [
+                {
+                    type: 'team',
+                    date: '2023-05-15',
+                    time: 60,
+                    totalValue: 1000,
+                    members: [
+                        { nickname: 'TestPlayer', amount: 500 },
+                        { nickname: 'Player2', amount: 300 },
+                        { nickname: 'Player3', amount: 200 }
+                    ]
+                }
+            ];
+            
+            // Generate report HTML
+            const reportHTML = generatePlayerReportHTML(mockData, playerName, startDate, endDate);
+            debugLog("Report HTML generated");
+            
+            // Display in modal
+            const container = document.getElementById('player-report-container');
+            const modal = document.getElementById('player-report-modal');
+            
+            if (container) {
+                container.innerHTML = reportHTML;
+                debugLog("Report HTML set in container");
+            } else {
+                debugLog("ERROR: Player report container not found");
+            }
+            
+            if (modal) {
+                modal.style.display = 'block';
+                debugLog("Player report modal displayed");
+            } else {
+                debugLog("ERROR: Player report modal not found");
+            }
+        }
+        
+        // Simplified generatePlayerReportHTML function
+        function generatePlayerReportHTML(data, playerName, startDate, endDate) {
+            debugLog(`Generating report for ${playerName} from ${startDate} to ${endDate}`);
+            
+            let totalActivities = 0;
+            let totalEarnings = 0;
+            let totalTime = 0;
+            
+            // Process mock data
+            data.forEach(item => {
+                if (item.type === 'team' && item.members) {
+                    const playerInTeam = item.members.find(member => 
+                        member.nickname && member.nickname.toLowerCase() === playerName.toLowerCase());
+                    
+                    if (playerInTeam) {
+                        totalActivities++;
+                        totalEarnings += playerInTeam.amount || 0;
+                        totalTime += item.time || 0;
+                    }
+                }
+            });
+            
+            let html = `
+                <h2>Player Report: ${playerName}</h2>
+                <h3>Period: ${startDate} to ${endDate}</h3>
+                
+                <div class="detailed-report-grid">
+                    <div class="detailed-report-card">
+                        <h4>Total Activities</h4>
+                        <div class="value">${totalActivities}</div>
+                        <div class="label">Participated</div>
+                    </div>
+                    <div class="detailed-report-card">
+                        <h4>Total Earnings</h4>
+                        <div class="value">${formatNumber(totalEarnings)}</div>
+                        <div class="label">Net Profit</div>
+                    </div>
+                    <div class="detailed-report-card">
+                        <h4>Total Time</h4>
+                        <div class="value">${totalTime}</div>
+                        <div class="label">Minutes</div>
+                    </div>
+                </div>
+                
+                <div class="detailed-report-section">
+                    <h3>Debug Information</h3>
+                    <p>This is a test report to verify that the functionality is working correctly.</p>
+                    <p>Data points processed: ${data.length}</p>
+                </div>
+            `;
+            
+            return html;
+        }
+    </script>
+</body>
+</html>

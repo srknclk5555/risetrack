@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Final Test - Report Button</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .item-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border: 1px solid #eee;
+            margin: 5px 0;
+            border-radius: 5px;
+        }
+        .item-name {
+            font-weight: bold;
+        }
+        .log {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Final Test - Report Button</h1>
+    
+    <div class="test-section">
+        <h2>Date Range Selection</h2>
+        <div class="date-selector">
+            <label>Start Date:</label>
+            <input type="date" id="report-start-date" value="2023-05-01">
+            <label>End Date:</label>
+            <input type="date" id="report-end-date" value="2023-05-31">
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Player Management</h2>
+        <div id="players-list" class="items-list">
+            <div class="item-row">
+                <span class="item-name">TestPlayer</span>
+                <button class="remove-item-btn">Remove</button>
+                <button class="report-btn" onclick="generatePlayerReport('TestPlayer')">Report</button>
+            </div>
+            <div class="item-row">
+                <span class="item-name">Player2</span>
+                <button class="remove-item-btn">Remove</button>
+                <button class="report-btn" onclick="generatePlayerReport('Player2')">Report</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Debug Buttons</h2>
+        <button onclick="testElements()">Test Elements</button>
+        <button onclick="testModalDisplay()">Test Modal Display</button>
+        <<div id="log" class="log">Click buttons above to see logs...</div>
+    </div>
+    
+    <!-- Player Report Modal -->
+    <div id="player-report-modal" class="modal">
+        <div class="modal-content detailed-report-content">
+            <span class="close" onclick="closePlayerReportModal()">&times;</span>
+            <h2>Player Specific Report</h2>
+            <div id="player-report-container">
+                <!-- Player report content will be generated here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Debug log function
+        function debugLog(message) {
+            const logElement = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logElement.innerHTML += `[${timestamp}] ${message}\n`;
+            logElement.scrollTop = logElement.scrollHeight;
+            console.log(message);
+        }
+        
+        // Test elements
+        function testElements() {
+            debugLog("Testing elements...");
+            
+            const startDate = document.getElementById('report-start-date');
+            const endDate = document.getElementById('report-end-date');
+            const modal = document.getElementById('player-report-modal');
+            const container = document.getElementById('player-report-container');
+            
+            debugLog(`Start date element: ${startDate ? 'FOUND' : 'NOT FOUND'}`);
+            debugLog(`End date element: ${endDate ? 'FOUND' : 'NOT FOUND'}`);
+            debugLog(`Modal element: ${modal ? 'FOUND' : 'NOT FOUND'}`);
+            debugLog(`Container element: ${container ? 'FOUND' : 'NOT FOUND'}`);
+            
+            if (startDate && endDate) {
+                debugLog(`Start date value: ${startDate.value}`);
+                debugLog(`End date value: ${endDate.value}`);
+            }
+        }
+        
+        // Test modal display
+        function testModalDisplay() {
+            debugLog("Testing modal display...");
+            
+            const modal = document.getElementById('player-report-modal');
+            if (modal) {
+                modal.style.display = 'block';
+                debugLog("Modal displayed successfully");
+            } else {
+                debugLog("ERROR: Modal element not found");
+            }
+        }
+        
+        // Close player report modal
+        function closePlayerReportModal() {
+            debugLog("Closing player report modal");
+            const modal = document.getElementById('player-report-modal');
+            if (modal) {
+                modal.style.display = 'none';
+                debugLog("Modal closed successfully");
+            } else {
+                debugLog("ERROR: Modal element not found");
+            }
+        }
+        
+        // Mock functions
+        function getLocalDateString(date) {
+            return date.toISOString().split('T')[0];
+        }
+        
+        function formatNumber(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        }
+        
+        function capitalize(str) {
+            return str.charAt(0).toUpperCase() + str.slice(1);
+        }
+        
+        // Mock localStorage
+        const localStorage = {
+            getItem: function(key) {
+                if (key === 'mainCharacter') {
+                    return 'TestPlayer';
+                }
+                return null;
+            }
+        };
+        
+        // Mock loadDataForDateRange function
+        function loadDataForDateRange(startDate, endDate, callback) {
+            debugLog(`loadDataForDateRange called with ${startDate} to ${endDate}`);
+            
+            // Mock data
+            const mockData = [
+                {
+                    type: 'team',
+                    date: '2023-05-15',
+                    time: 60,
+                    totalValue: 1000,
+                    members: [
+                        { nickname: 'TestPlayer', amount: 500 },
+                        { nickname: 'Player2', amount: 300 },
+                        { nickname: 'Player3', amount: 200 }
+                    ]
+                },
+                {
+                    type: 'gathering',
+                    date: '2023-05-16',
+                    time: 45,
+                    profession: 'Mining',
+                    materials: [
+                        { name: 'Iron Ore', amount: 20, total: 1000 }
+                    ]
+                }
+            ];
+            
+            // Filter data by date range
+            const filteredData = mockData.filter(item => {
+                return item.date >= startDate && item.date <= endDate;
+            });
+            
+            debugLog(`Filtered data: ${filteredData.length} items`);
+            callback(filteredData);
+        }
+        
+        // Generate player report
+        function generatePlayerReport(playerName) {
+            debugLog(`generatePlayerReport called with: ${playerName}`);
+            
+            let startDate = document.getElementById('report-start-date').value;
+            let endDate = document.getElementById('report-end-date').value;
+            
+            debugLog(`Selected dates: ${startDate} to ${endDate}`);
+            
+            // If no dates are selected, use a default range (last 30 days)
+            if (!startDate || !endDate) {
+                const today = new Date();
+                endDate = getLocalDateString(today);
+                const thirtyDaysAgo = new Date(today);
+                thirtyDaysAgo.setDate(today.getDate() - 30);
+                startDate = getLocalDateString(thirtyDaysAgo);
+                
+                // Set the dates in the UI so user can see what range is being used
+                document.getElementById('report-start-date').value = startDate;
+                document.getElementById('report-end-date').value = endDate;
+                
+                debugLog(`Using default dates: ${startDate} to ${endDate}`);
+            }
+            
+            // Load data for the selected date range
+            debugLog('Loading data for date range...');
+            loadDataForDateRange(startDate, endDate, (data) => {
+                debugLog(`Data loaded with ${data.length} items`);
+                
+                // Calculate player statistics
+                const stats = calculatePlayerStatistics(data, playerName);
+                debugLog(`Player statistics calculated: ${JSON.stringify(stats, null, 2)}`);
+                
+                // Generate report HTML
+                const reportHTML = generatePlayerReportHTML(data, playerName, startDate, endDate);
+                debugLog("Report HTML generated");
+                
+                // Display in modal
+                const container = document.getElementById('player-report-container');
+                const modal = document.getElementById('player-report-modal');
+                
+                if (container) {
+                    container.innerHTML = reportHTML;
+                    debugLog('Report HTML set in container');
+                } else {
+                    debugLog('ERROR: Player report container not found');
+                }
+                
+                if (modal) {
+                    modal.style.display = 'block';
+                    debugLog('Player report modal displayed');
+                } else {
+                    debugLog('ERROR: Player report modal not found');
+                }
+            });
+        }
+        
+        // Calculate player statistics
+        function calculatePlayerStatistics(data, playerName) {
+            // Initialize statistics objects
+            const stats = {
+                playerName: playerName,
+                totalActivities: 0,
+                totalEarnings: 0,
+                totalTime: 0,
+                totalContribution: 0,
+                averageEarnings: 0,
+                averageTime: 0,
+                participationRate: 0,
+                activitiesByDate: {},
+                activitiesByType: {},
+                totalActivitiesInSystem: 0
+            };
+            
+            // Count total activities in the system where player participation can be verified
+            // Currently, only team farms have player identification, so we count those
+            stats.totalActivitiesInSystem = data.filter(item => item.type === 'team').length;
+            
+            // Get the main character from localStorage
+            const mainCharacter = localStorage.getItem('mainCharacter');
+            
+            // Process each data item
+            data.forEach(item => {
+                let playerParticipated = false;
+                let playerEarnings = 0;
+                let playerTime = 0;
+                
+                // Process different types of activities for the specific player
+                if (item.type === 'team') {
+                    // For team farms, check if player is in the members list
+                    if (item.members && Array.isArray(item.members)) {
+                        // If we're generating a report for a specific player, check if that player is in the team
+                        // If we're generating a report for the main character, check if the main character is in the team
+                        const targetPlayer = playerName === 'main' && mainCharacter ? mainCharacter : playerName;
+                        
+                        const playerInTeam = item.members.find(member => 
+                            member.nickname && member.nickname.toLowerCase() === targetPlayer.toLowerCase());
+                        
+                        if (playerInTeam) {
+                            playerParticipated = true;
+                            playerTime = item.time || 0;
+                            
+                            // Calculate player's share
+                            const playerShare = playerInTeam.amount || 0;
+                            playerEarnings = playerShare;
+                            
+                            // Calculate contribution percentage
+                            const totalValue = item.totalValue || 0;
+                            if (totalValue > 0) {
+                                stats.totalContribution += (playerShare / totalValue) * 100;
+                            }
+                        }
+                    }
+                }
+                
+                // Only count activities where the player actually participated
+                if (playerParticipated) {
+                    stats.totalActivities++;
+                    stats.totalEarnings += playerEarnings;
+                    stats.totalTime += playerTime;
+                    
+                    // Track activities by date
+                    if (item.date) {
+                        if (!stats.activitiesByDate[item.date]) {
+                            stats.activitiesByDate[item.date] = 0;
+                        }
+                        stats.activitiesByDate[item.date]++;
+                    }
+                    
+                    // Track activities by type
+                    const type = item.type || 'Unknown';
+                    if (!stats.activitiesByType[type]) {
+                        stats.activitiesByType[type] = 0;
+                    }
+                    stats.activitiesByType[type]++;
+                }
+            });
+            
+            // Calculate averages
+            if (stats.totalActivities > 0) {
+                stats.averageEarnings = stats.totalEarnings / stats.totalActivities;
+                stats.averageTime = stats.totalTime / stats.totalActivities;
+                stats.averageContribution = stats.totalContribution / stats.totalActivities;
+            }
+            
+            // Calculate participation rate
+            if (stats.totalActivitiesInSystem > 0) {
+                stats.participationRate = (stats.totalActivities / stats.totalActivitiesInSystem) * 100;
+            }
+            
+            return stats;
+        }
+        
+        // Generate player report HTML
+        function generatePlayerReportHTML(data, playerName, startDate, endDate) {
+            // Calculate player statistics
+            const stats = calculatePlayerStatistics(data, playerName);
+            
+            // Find date with most and least activities
+            let mostActiveDate = { date: 'N/A', count: 0 };
+            let leastActiveDate = { date: 'N/A', count: Infinity };
+            
+            Object.entries(stats.activitiesByDate).forEach(([date, count]) => {
+                if (count > mostActiveDate.count) {
+                    mostActiveDate = { date, count };
+                }
+                if (count < leastActiveDate.count) {
+                    leastActiveDate = { date, count };
+                }
+            });
+            
+            // If no least active date found, set to same as most active
+            if (leastActiveDate.count === Infinity) {
+                leastActiveDate = { ...mostActiveDate };
+            }
+            
+            let html = `
+                <h2>Player Report: ${playerName}</h2>
+                <h3>Period: ${startDate} to ${endDate}</h3>
+                
+                <!-- Summary Cards -->
+                <div class="detailed-report-grid">
+                    <div class="detailed-report-card">
+                        <h4>Total Activities</h4>
+                        <div class="value">${stats.totalActivities}</div>
+                        <div class="label">Participated</div>
+                    </div>
+                    <div class="detailed-report-card">
+                        <h4>Total Earnings</h4>
+                        <div class="value">${formatNumber(stats.totalEarnings)}</div>
+                        <div class="label">Net Profit</div>
+                    </div>
+                    <div class="detailed-report-card">
+                        <h4>Total Time</h4>
+                        <div class="value">${stats.totalTime}</div>
+                        <div class="label">Minutes</div>
+                    </div>
+                    <div class="detailed-report-card">
+                        <h4>Average Earnings</h4>
+                        <div class="value">${formatNumber(stats.averageEarnings)}</div>
+                        <div class="label">Per Activity</div>
+                    </div>
+                </div>
+                
+                <div class="detailed-report-grid">
+                    <div class="detailed-report-card">
+                        <h4>Average Time</h4>
+                        <div class="value">${Math.round(stats.averageTime)} min</div>
+                        <div class="label">Per Activity</div>
+                    </div>
+                    <div class="detailed-report-card">
+                        <h4>Average Contribution</h4>
+                        <div class="value">${stats.averageContribution.toFixed(2)}%</div>
+                        <div class="label">Team Activities</div>
+                    </div>
+                    <div class="detailed-report-card">
+                        <h4>Participation Rate</h4>
+                        <div class="value">${stats.participationRate.toFixed(2)}%</div>
+                        <div class="label">Of All Activities</div>
+                    </div>
+                    <div class="detailed-report-card">
+                        <h4>Most Active Date</h4>
+                        <div class="value">${mostActiveDate.date}</div>
+                        <div class="label">${mostActiveDate.count} activities</div>
+                    </div>
+                </div>
+                
+                <!-- Activities by Type -->
+                <div class="detailed-report-section">
+                    <h3>Activity Type Distribution</h3>
+                    <table class="detailed-report-table">
+                        <thead>
+                            <tr>
+                                <th>Activity Type</th>
+                                <th>Count</th>
+                                <th>Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${Object.entries(stats.activitiesByType).map(([type, count]) => {
+                                const percentage = stats.totalActivities > 0 ? 
+                                    ((count / stats.totalActivities) * 100).toFixed(2) : 0;
+                                return `
+                                <tr>
+                                    <td>${capitalize(type)}</td>
+                                    <td>${count}</td>
+                                    <td>${percentage}%</td>
+                                </tr>
+                            `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            return html;
+        }
+    </script>
+</body>
+</html>

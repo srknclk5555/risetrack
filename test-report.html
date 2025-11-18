@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Player Report</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .detailed-report-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .detailed-report-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            background-color: #f9f9f9;
+        }
+        .detailed-report-card h4 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        .detailed-report-card .value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .detailed-report-card .label {
+            font-size: 14px;
+            color: #666;
+        }
+        .detailed-report-section {
+            margin: 30px 0;
+        }
+        .detailed-report-section h3 {
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+            color: #333;
+        }
+        .detailed-report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        .detailed-report-table th,
+        .detailed-report-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        .detailed-report-table th {
+            background-color: #007bff;
+            color: white;
+        }
+        .detailed-report-table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test Player Report</h1>
+    <div id="test-report-container"></div>
+
+    <script>
+        // Test data
+        const testData = [
+            {
+                type: 'team',
+                date: '2023-05-15',
+                time: 60,
+                totalValue: 1000,
+                members: [
+                    { nickname: 'Player1', amount: 500 },
+                    { nickname: 'Player2', amount: 300 },
+                    { nickname: 'Player3', amount: 200 }
+                ],
+                materials: [
+                    { name: 'Iron Ore', amount: 10, total: 500 },
+                    { name: 'Copper Ore', amount: 15, total: 300 },
+                    { name: 'Silver Ore', amount: 5, total: 200 }
+                ]
+            },
+            {
+                type: 'gathering',
+                date: '2023-05-16',
+                time: 45,
+                profession: 'Mining',
+                materials: [
+                    { name: 'Iron Ore', amount: 20, total: 1000 }
+                ]
+            },
+            {
+                type: 'solo',
+                date: '2023-05-17',
+                time: 30,
+                totalValue: 500,
+                items: [
+                    { name: 'Herb', amount: 25, total: 500 }
+                ]
+            }
+        ];
+
+        // Include the necessary functions from script.js
+        function formatNumber(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        }
+
+        function capitalize(str) {
+            return str.charAt(0).toUpperCase() + str.slice(1);
+        }
+
+        // Calculate Player Specific Statistics
+        function calculatePlayerStatistics(data, playerName) {
+            // Initialize statistics objects
+            const stats = {
+                playerName: playerName,
+                totalActivities: 0,
+                totalEarnings: 0,
+                totalTime: 0,
+                totalContribution: 0,
+                averageEarnings: 0,
+                averageTime: 0,
+                participationRate: 0,
+                activitiesByDate: {},
+                activitiesByType: {},
+                totalActivitiesInSystem: 0
+            };
+            
+            // Count total activities in the system where player participation can be verified
+            // Currently, only team farms have player identification, so we count those
+            stats.totalActivitiesInSystem = data.filter(item => item.type === 'team').length;
+            
+            // Process each data item
+            data.forEach(item => {
+                let playerParticipated = false;
+                let playerEarnings = 0;
+                let playerTime = 0;
+                
+                // Process different types of activities for the specific player
+                if (item.type === 'team') {
+                    // For team farms, check if player is in the members list
+                    if (item.members && Array.isArray(item.members)) {
+                        const playerInTeam = item.members.find(member => 
+                            member.nickname && member.nickname.toLowerCase() === playerName.toLowerCase());
+                        
+                        if (playerInTeam) {
+                            playerParticipated = true;
+                            playerTime = item.time || 0;
+                            
+                            // Calculate player's share
+                            const playerShare = playerInTeam.amount || 0;
+                            playerEarnings = playerShare;
+                            
+                            // Calculate contribution percentage
+                            const totalValue = item.totalValue || 0;
+                            if (totalValue > 0) {
+                                stats.totalContribution += (playerShare / totalValue) * 100;
+                            }
+                        }
+                    }
+                }
+                
+                // Only count activities where the player actually participated
+                if (playerParticipated) {
+                    stats.totalActivities++;
+                    stats.totalEarnings += playerEarnings;
+                    stats.totalTime += playerTime;
+                    
+                    // Track activities by date
+                    if (item.date) {
+                        if (!stats.activitiesByDate[item.date]) {
+                            stats.activitiesByDate[item.date] = 0;
+                        }
+                        stats.activitiesByDate[item.date]++;
+                    }
+                    
+                    // Track activities by type
+                    const type = item.type || 'Unknown';
+                    if (!stats.activitiesByType[type]) {
+                        stats.activitiesByType[type] = 0;
+                    }
+                    stats.activitiesByType[type]++;
+                }
+            });
+            
+            // Calculate averages
+            if (stats.totalActivities > 0) {
+                stats.averageEarnings = stats.totalEarnings / stats.totalActivities;
+                stats.averageTime = stats.totalTime / stats.totalActivities;
+                stats.averageContribution = stats.totalContribution / stats.totalActivities;
+            }
+            
+            // Calculate participation rate
+            if (stats.totalActivitiesInSystem > 0) {
+                stats.participationRate = (stats.totalActivities / stats.totalActivitiesInSystem) * 100;
+            }
+            
+            return stats;
+        }
+
+        // Calculate Player Item Earnings
+        function calculatePlayerItemEarnings(data, playerName) {
+            const itemEarnings = {};
+            
+            // Process each data item
+            data.forEach(item => {
+                if (item.type === 'team' && item.members && Array.isArray(item.members)) {
+                    // For team farms, check if player is in the members list
+                    const playerInTeam = item.members.find(member => 
+                        member.nickname && member.nickname.toLowerCase() === playerName.toLowerCase());
+                    
+                    if (playerInTeam && item.materials && Array.isArray(item.materials)) {
+                        // Calculate player's share of the earnings
+                        const playerShare = playerInTeam.amount || 0;
+                        const totalValue = item.totalValue || 0;
+                        
+                        if (totalValue > 0) {
+                            const shareRatio = playerShare / totalValue;
+                            
+                            item.materials.forEach(material => {
+                                const itemName = material.name || 'Unknown';
+                                const quantity = material.amount || 0;
+                                const value = material.total || 0;
+                                const playerQuantity = Math.round(quantity * shareRatio);
+                                const playerValue = value * shareRatio;
+                                
+                                if (!itemEarnings[itemName]) {
+                                    itemEarnings[itemName] = {
+                                        totalQuantity: 0,
+                                        totalValue: 0,
+                                        averageValue: 0
+                                    };
+                                }
+                                
+                                itemEarnings[itemName].totalQuantity += playerQuantity;
+                                itemEarnings[itemName].totalValue += playerValue;
+                                
+                                if (itemEarnings[itemName].totalQuantity > 0) {
+                                    itemEarnings[itemName].averageValue = 
+                                        itemEarnings[itemName].totalValue / itemEarnings[itemName].totalQuantity;
+                                }
+                            });
+                        }
+                    }
+                }
+            });
+            
+            return itemEarnings;
+        }
+
+        // Calculate Player Gathering Statistics
+        function calculatePlayerGatheringStats(data, playerName) {
+            const gatheringStats = {};
+            
+            // Process each data item
+            data.forEach(item => {
+                if (item.type === 'gathering') {
+                    // For gathering activities, we can't verify player participation without user identification
+                    // But we can include them in the report as potential activities
+                    const profession = item.profession || 'Unknown';
+                    const time = parseInt(item.time) || 0;
+                    let earnings = 0;
+                    
+                    if (item.materials && Array.isArray(item.materials)) {
+                        item.materials.forEach(material => {
+                            earnings += material.total || 0;
+                        });
+                    }
+                    
+                    if (!gatheringStats[profession]) {
+                        gatheringStats[profession] = {
+                            activities: 0,
+                            totalTime: 0,
+                            totalEarnings: 0
+                        };
+                    }
+                    
+                    gatheringStats[profession].activities++;
+                    gatheringStats[profession].totalTime += time;
+                    gatheringStats[profession].totalEarnings += earnings;
+                } else if (item.type === 'team' && item.members && Array.isArray(item.members)) {
+                    // For team farms, check if player is in the members list
+                    const playerInTeam = item.members.find(member => 
+                        member.nickname && member.nickname.toLowerCase() === playerName.toLowerCase());
+                    
+                    if (playerInTeam) {
+                        const time = parseInt(item.time) || 0;
+                        const playerShare = playerInTeam.amount || 0;
+                        
+                        // We'll categorize team activities as "Team Farming"
+                        const profession = 'Team Farming';
+                        
+                        if (!gatheringStats[profession]) {
+                            gatheringStats[profession] = {
+                                activities: 0,
+                                totalTime: 0,
+                                totalEarnings: 0
+                            };
+                        }
+                        
+                        gatheringStats[profession].activities++;
+                        gatheringStats[profession].totalTime += time;
+                        gatheringStats[profession].totalEarnings += playerShare;
+                    }
+                }
+            });
+            
+            return gatheringStats;
+        }
+
+        // Calculate Player Farm Statistics
+        function calculatePlayerFarmStats(data, playerName) {
+            const farmStats = {};
+            
+            // Process each data item
+            data.forEach(item => {
+                if (item.type === 'solo' || item.type === 'team') {
+                    let playerParticipated = false;
+                    let playerEarnings = 0;
+                    let playerTime = 0;
+                    
+                    if (item.type === 'solo') {
+                        // For solo farms, we can't verify player participation without user identification
+                        // But we can include them in the report as potential activities
+                        playerParticipated = true;
+                        playerTime = parseInt(item.time) || 0;
+                        playerEarnings = item.totalValue || 0;
+                    } else if (item.type === 'team' && item.members && Array.isArray(item.members)) {
+                        // For team farms, check if player is in the members list
+                        const playerInTeam = item.members.find(member => 
+                            member.nickname && member.nickname.toLowerCase() === playerName.toLowerCase());
+                        
+                        if (playerInTeam) {
+                            playerParticipated = true;
+                            playerTime = parseInt(item.time) || 0;
+                            playerEarnings = playerInTeam.amount || 0;
+                        }
+                    }
+                    
+                    if (playerParticipated) {
+                        const farmType = item.type;
+                        
+                        if (!farmStats[farmType]) {
+                            farmStats[farmType] = {
+                                activities: 0,
+                                totalTime: 0,
+                                totalEarnings: 0
+                            };
+                        }
+                        
+                        farmStats[farmType].activities++;
+                        farmStats[farmType].totalTime += playerTime;
+                        farmStats[farmType].totalEarnings += playerEarnings;
+                    }
+                }
+            });
+            
+            return farmStats;
+        }
+
+        // Generate Player Report HTML
+        function generatePlayerReportHTML(data, playerName, startDate, endDate) {
+            // Calculate player statistics
+            const stats = calculatePlayerStatistics(data, playerName);
+            
+            // Find date with most and least activities
+            let mostActiveDate = { date: 'N/A', count: 0 };
+            let leastActiveDate = { date: 'N/A', count: Infinity };
+            
+            Object.entries(stats.activitiesByDate).forEach(([date, count]) => {
+                if (count > mostActiveDate.count) {
+                    mostActiveDate = { date, count };
+                }
+                if (count < leastActiveDate.count) {
+                    leastActiveDate = { date, count };
+                }
+            });
+            
+            // If no least active date found, set to same as most active
+            if (leastActiveDate.count === Infinity) {
+                leastActiveDate = { ...mostActiveDate };
+            }
+            
+            // Calculate item earnings and gathering details
+            const itemEarnings = calculatePlayerItemEarnings(data, playerName);
+            const gatheringStats = calculatePlayerGatheringStats(data, playerName);
+            const farmStats = calculatePlayerFarmStats(data, playerName);
+            
+            let html = `
+                <h2>Player Report: ${playerName}</h2>
+                <h3>Period: ${startDate} to ${endDate}</h3>
+                
+                <!-- Summary Cards -->
+                <div class="detailed-report-grid">
+                    <div class="detailed-report-card">
+                        <h4>Total Activities</h4>
+                        <div class="value">${stats.totalActivities}</div>
+                        <div class="label">Participated</div>
+                    </div>
+                    <div class="detailed-report-card">
+                        <h4>Total Earnings</h4>
+                        <div class="value">${formatNumber(stats.totalEarnings)}</div>
+                        <div class="label">Net Profit</div>
+                    </div>
+                    <div class="detailed-report-card">
+                        <h4>Total Time</h4>
+                        <div class="value">${stats.totalTime}</div>
+                        <div class="label">Minutes</div>
+                    </div>
+                    <div class="detailed-report-card">
+                        <h4>Average Earnings</h4>
+                        <div class="value">${formatNumber(stats.averageEarnings)}</div>
+                        <div class="label">Per Activity</div>
+                    </div>
+                </div>
+                
+                <div class="detailed-report-grid">
+                    <div class="detailed-report-card">
+                        <h4>Average Time</h4>
+                        <div class="value">${Math.round(stats.averageTime)} min</div>
+                        <div class="label">Per Activity</div>
+                    </div>
+                    <div class="detailed-report-card">
+                        <h4>Average Contribution</h4>
+                        <div class="value">${stats.averageContribution.toFixed(2)}%</div>
+                        <div class="label">Team Activities</div>
+                    </div>
+                    <div class="detailed-report-card">
+                        <h4>Participation Rate</h4>
+                        <div class="value">${stats.participationRate.toFixed(2)}%</div>
+                        <div class="label">Of All Activities</div>
+                    </div>
+                    <div class="detailed-report-card">
+                        <h4>Most Active Date</h4>
+                        <div class="value">${mostActiveDate.date}</div>
+                        <div class="label">${mostActiveDate.count} activities</div>
+                    </div>
+                </div>
+                
+                <!-- Activities by Type -->
+                <div class="detailed-report-section">
+                    <h3>Activity Type Distribution</h3>
+                    <table class="detailed-report-table">
+                        <thead>
+                            <tr>
+                                <th>Activity Type</th>
+                                <th>Count</th>
+                                <th>Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${Object.entries(stats.activitiesByType).map(([type, count]) => {
+                                const percentage = stats.totalActivities > 0 ? 
+                                    ((count / stats.totalActivities) * 100).toFixed(2) : 0;
+                                return `
+                                <tr>
+                                    <td>${capitalize(type)}</td>
+                                    <td>${count}</td>
+                                    <td>${percentage}%</td>
+                                </tr>
+                            `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Earnings by Item -->
+                <div class="detailed-report-section">
+                    <h3>Item Earnings</h3>
+                    <table class="detailed-report-table">
+                        <thead>
+                            <tr>
+                                <th>Item Name</th>
+                                <th>Quantity</th>
+                                <th>Total Value</th>
+                                <th>Average Value</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${Object.entries(itemEarnings).map(([itemName, itemData]) => `
+                                <tr>
+                                    <td>${itemName}</td>
+                                    <td>${itemData.totalQuantity}</td>
+                                    <td>${formatNumber(itemData.totalValue)}</td>
+                                    <td>${formatNumber(itemData.averageValue)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Gathering Statistics -->
+                <div class="detailed-report-section">
+                    <h3>Gathering Statistics</h3>
+                    <table class="detailed-report-table">
+                        <thead>
+                            <tr>
+                                <th>Profession</th>
+                                <th>Activities</th>
+                                <th>Total Time</th>
+                                <th>Total Earnings</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${Object.entries(gatheringStats).map(([profession, profData]) => `
+                                <tr>
+                                    <td>${profession}</td>
+                                    <td>${profData.activities}</td>
+                                    <td>${profData.totalTime} min</td>
+                                    <td>${formatNumber(profData.totalEarnings)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Farm Statistics -->
+                <div class="detailed-report-section">
+                    <h3>Farm Statistics</h3>
+                    <table class="detailed-report-table">
+                        <thead>
+                            <tr>
+                                <th>Farm Type</th>
+                                <th>Activities</th>
+                                <th>Total Time</th>
+                                <th>Total Earnings</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${Object.entries(farmStats).map(([farmType, farmData]) => `
+                                <tr>
+                                    <td>${capitalize(farmType)} Farm</td>
+                                    <td>${farmData.activities}</td>
+                                    <td>${farmData.totalTime} min</td>
+                                    <td>${formatNumber(farmData.totalEarnings)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            return html;
+        }
+
+        // Test the report generation
+        window.onload = function() {
+            const reportHTML = generatePlayerReportHTML(testData, 'Player1', '2023-05-15', '2023-05-17');
+            document.getElementById('test-report-container').innerHTML = reportHTML;
+        };
+    </script>
+</body>
+</html>

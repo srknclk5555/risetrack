@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval'; script-src * 'unsafe-inline' 'unsafe-eval'; connect-src * 'unsafe-inline'; img-src * data: blob: 'unsafe-inline'; frame-src *; style-src * 'unsafe-inline';">
+    <title>Login - Rise Online Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            width: 100%;
+            max-width: 450px;
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo h1 {
+            color: #667eea;
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .logo p {
+            color: #666;
+            font-size: 0.95em;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: transparent;
+            color: #666;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .tab-btn.active {
+            color: #667eea;
+        }
+
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-size: 1.1em;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 25px 0;
+            color: #999;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #e0e0e0;
+        }
+
+        .divider span {
+            padding: 0 15px;
+            font-size: 0.9em;
+        }
+
+        .google-btn {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #e0e0e0;
+            background: white;
+            color: #333;
+            font-size: 1em;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .google-btn:hover {
+            background: #f5f5f5;
+            border-color: #667eea;
+        }
+
+        .google-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #f5c6cb;
+            display: none;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #c3e6cb;
+            display: none;
+        }
+
+        .forgot-password {
+            text-align: right;
+            margin-top: 10px;
+        }
+
+        .forgot-password a {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 0.9em;
+        }
+
+        .forgot-password a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo">
+            <h1>🎮 Rise Online Tracker</h1>
+            <p>Track your progress and earnings</p>
+        </div>
+
+        <div id="errorMessage" class="error-message"></div>
+        <div id="successMessage" class="success-message"></div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('login')">Login</button>
+            <button class="tab-btn" onclick="switchTab('register')">Register</button>
+        </div>
+
+        <!-- Login Tab -->
+        <div id="login" class="tab-content active">
+            <form onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="login-username" required placeholder="Enter your username">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="login-password" required placeholder="••••••••">
+                </div>
+                <div class="forgot-password">
+                    <a href="#" onclick="resetPassword(); return false;">Forgot Password?</a>
+                </div>
+                <button type="submit" class="submit-btn">Login</button>
+            </form>
+
+            <div class="divider">
+                <span>OR</span>
+            </div>
+
+            <button class="google-btn" onclick="signInWithGoogle()">
+                <svg class="google-icon" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+                Sign in with Google
+            </button>
+        </div>
+
+        <!-- Register Tab -->
+        <div id="register" class="tab-content">
+            <form onsubmit="handleRegister(event)">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="register-username" required placeholder="Choose a username">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="register-password" required placeholder="••••••••" minlength="6">
+                </div>
+                <div class="form-group">
+                    <label>Confirm Password</label>
+                    <input type="password" id="register-confirm-password" required placeholder="••••••••" minlength="6">
+                </div>
+                <button type="submit" class="submit-btn">Create Account</button>
+            </form>
+
+            <div class="divider">
+                <span>OR</span>
+            </div>
+
+            <button class="google-btn" onclick="signInWithGoogle()">
+                <svg class="google-icon" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+                Sign up with Google
+            </button>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAzlbU1q38L9tktaKXPbE79_OrC67Pg-_g",
+            authDomain: "craft-71422.firebaseapp.com",
+            projectId: "craft-71422",
+            storageBucket: "craft-71422.firebasestorage.app",
+            messagingSenderId: "743669193125",
+            appId: "1:743669193125:web:89ad8b99e145615224704c",
+            measurementId: "G-F91JW03HVS",
+            databaseURL: "https://craft-71422-default-rtdb.firebaseio.com"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        // Check if user is already logged in (but wait for redirect result first)
+        let redirectResultChecked = false;
+        
+        // Handle redirect result from Google sign-in FIRST
+        console.log('Checking for redirect result...');
+        auth.getRedirectResult()
+            .then((result) => {
+                console.log('Redirect result:', result);
+                redirectResultChecked = true;
+                
+                if (result.user) {
+                    // User signed in successfully via redirect
+                    console.log('User signed in via Google:', result.user.displayName || result.user.email);
+                    showSuccess('Google sign-in successful! Redirecting...');
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 1000);
+                } else {
+                    console.log('No redirect result (normal page load)');
+                    // Now check auth state
+                    checkAuthState();
+                }
+            })
+            .catch((error) => {
+                console.error('Redirect error:', error);
+                redirectResultChecked = true;
+                if (error.code && error.code !== 'auth/popup-closed-by-user') {
+                    showError(getErrorMessage(error.code));
+                }
+                // Check auth state even if redirect failed
+                checkAuthState();
+            });
+        
+        // Check auth state function
+        function checkAuthState() {
+            auth.onAuthStateChanged((user) => {
+                if (user && redirectResultChecked) {
+                    console.log('User already logged in:', user.displayName || user.email);
+                    // User is signed in, redirect to main app
+                    window.location.href = 'index.html';
+                }
+            });
+        }
+
+        // Switch tabs
+        function switchTab(tab) {
+            // Update tab buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(tab).classList.add('active');
+
+            // Clear messages
+            hideMessages();
+        }
+
+        // Handle Login
+        function handleLogin(e) {
+            e.preventDefault();
+            hideMessages();
+
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+
+            // For username/password login, we need to find the user by username
+            signInWithUsername(username, password)
+                .then((userCredential) => {
+                    showSuccess('Login successful! Redirecting...');
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 1000);
+                })
+                .catch((error) => {
+                    showError(getErrorMessage(error.code));
+                });
+        }
+
+        // Handle Register
+        function handleRegister(e) {
+            e.preventDefault();
+            hideMessages();
+
+            const username = document.getElementById('register-username').value;
+            const password = document.getElementById('register-password').value;
+            const confirmPassword = document.getElementById('register-confirm-password').value;
+
+            if (password !== confirmPassword) {
+                showError('Passwords do not match!');
+                return;
+            }
+
+            if (password.length < 6) {
+                showError('Password must be at least 6 characters long!');
+                return;
+            }
+
+            createUserWithUsername(username, password)
+                .then((userCredential) => {
+                    showSuccess('Account created successfully! Redirecting...');
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 1000);
+                })
+                .catch((error) => {
+                    showError(getErrorMessage(error.code));
+                });
+        }
+
+        // Sign in with Username
+        function signInWithUsername(username, password) {
+            // In a real implementation, you would need to map usernames to emails
+            // For now, we'll simulate this by treating the username as an email
+            const email = username.includes('@') ? username : username + '@riseonline.local';
+            
+            return auth.signInWithEmailAndPassword(email, password)
+                .catch((error) => {
+                    // If the simulated email doesn't work, try the username as-is
+                    if (error.code === 'auth/user-not-found') {
+                        return auth.signInWithEmailAndPassword(username, password);
+                    }
+                    throw error;
+                });
+        }
+
+        // Create user with Username
+        function createUserWithUsername(username, password) {
+            // Create a simulated email from the username
+            const email = username.includes('@') ? username : username + '@riseonline.local';
+            
+            return auth.createUserWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    // Store the username in the user's profile
+                    const user = userCredential.user;
+                    return user.updateProfile({
+                        displayName: username
+                    }).then(() => {
+                        // Also store in database for easy lookup
+                        if (typeof database !== 'undefined') {
+                            return database.ref('usernames/' + username).set({
+                                uid: user.uid
+                            });
+                        }
+                    }).then(() => userCredential);
+                });
+        }
+
+        // Sign in with Google
+        function signInWithGoogle() {
+            console.log('Google sign-in button clicked');
+            hideMessages();
+            
+            if (!auth) {
+                showError('Firebase Auth not initialized!');
+                console.error('Firebase Auth not initialized');
+                return;
+            }
+            
+            const provider = new firebase.auth.GoogleAuthProvider();
+            console.log('Google provider created, attempting redirect...');
+
+            // Use redirect instead of popup for better compatibility
+            auth.signInWithRedirect(provider)
+                .then(() => {
+                    console.log('Redirect initiated successfully');
+                })
+                .catch((error) => {
+                    console.error('Sign-in error:', error);
+                    showError('Sign-in failed: ' + error.message);
+                });
+        }
+
+        // Reset Password
+        function resetPassword() {
+            showError('Password reset is not available in username/password mode');
+        }
+
+        // Show error message
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        // Show success message
+        function showSuccess(message) {
+            const successDiv = document.getElementById('successMessage');
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+        }
+
+        // Hide messages
+        function hideMessages() {
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('successMessage').style.display = 'none';
+        }
+
+        // Get user-friendly error messages
+        function getErrorMessage(code) {
+            switch (code) {
+                case 'auth/email-already-in-use':
+                    return 'This username is already registered!';
+                case 'auth/invalid-email':
+                    return 'Invalid username!';
+                case 'auth/operation-not-allowed':
+                    return 'Operation not allowed!';
+                case 'auth/weak-password':
+                    return 'Password is too weak!';
+                case 'auth/user-disabled':
+                    return 'This account has been disabled!';
+                case 'auth/user-not-found':
+                    return 'No account found with this username!';
+                case 'auth/wrong-password':
+                    return 'Incorrect password!';
+                case 'auth/too-many-requests':
+                    return 'Too many attempts! Please try again later.';
+                case 'auth/popup-closed-by-user':
+                    return 'Sign-in popup was closed!';
+                default:
+                    return 'An error occurred: ' + code;
+            }
+        }
+    </script>
+</body>
+</html>

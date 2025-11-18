@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Detailed Farm Filter Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #fafafa;
+        }
+        .section-title {
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button.secondary {
+            background-color: #6c757d;
+        }
+        button.secondary:hover {
+            background-color: #545b62;
+        }
+        button.success {
+            background-color: #28a745;
+        }
+        button.success:hover {
+            background-color: #218838;
+        }
+        .farm-filters {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            background-color: #e9ecef;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            min-width: 200px;
+        }
+        .filter-group label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #495057;
+        }
+        .filter-group select,
+        .filter-group input {
+            padding: 8px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .log {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            margin-top: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #dee2e6;
+        }
+        .log-entry {
+            margin: 2px 0;
+            padding: 2px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .log-timestamp {
+            color: #6c757d;
+            font-size: 12px;
+        }
+        .log-message {
+            color: #212529;
+        }
+        .farm-list {
+            margin-top: 20px;
+        }
+        .farm-record {
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            background-color: #fff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .farm-record-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+        .farm-record-type {
+            font-weight: bold;
+            padding: 3px 8px;
+            border-radius: 3px;
+            color: white;
+            font-size: 12px;
+        }
+        .farm-record-type.solo {
+            background-color: #007bff;
+        }
+        .farm-record-type.team {
+            background-color: #28a745;
+        }
+        .team-members-list {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .team-member-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            margin: 3px;
+            background-color: #e9ecef;
+            border-radius: 15px;
+            font-size: 13px;
+        }
+        .team-member-badge.paid {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+        }
+        .team-member-badge.unpaid {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+        }
+        .payment-status {
+            font-size: 12px;
+            margin-left: 5px;
+        }
+        .payment-status.paid {
+            color: #28a745;
+        }
+        .payment-status.unpaid {
+            color: #dc3545;
+        }
+        .farm-items-list {
+            margin-top: 15px;
+        }
+        .farm-items-list h5 {
+            margin-bottom: 10px;
+            color: #495057;
+        }
+        .farm-item-row {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+        }
+        .farm-item-row:last-child {
+            border-bottom: none;
+        }
+        .stats-panel {
+            display: flex;
+            justify-content: space-between;
+            background-color: #e9ecef;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .stat-item {
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .stat-label {
+            font-size: 14px;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Detailed Farm Filter Test</h1>
+        <p>This test page helps diagnose issues with the Farm tab filtering functionality.</p>
+        
+        <div class="test-section">
+            <h2 class="section-title">📋 Test Controls</h2>
+            <button onclick="loadSampleData()">📥 Load Sample Data</button>
+            <button class="secondary" onclick="clearAllData()">🗑️ Clear All Data</button>
+            <button class="success" onclick="runFilterTest()">🔍 Run Filter Test</button>
+            <button onclick="showCurrentState()">📊 Show Current State</button>
+        </div>
+        
+        <div class="test-section">
+            <h2 class="section-title">🎛️ Farm Filters</h2>
+            <div class="farm-filters">
+                <div class="filter-group">
+                    <label>Filter by Type:</label>
+                    <select id="farm-type-filter" onchange="applyFarmFilters()">
+                        <option value="all">All Farms</option>
+                        <option value="solo">Solo Farms Only</option>
+                        <option value="team">Team Farms Only</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label>Search Player:</label>
+                    <input type="text" id="farm-player-search" placeholder="Enter player nickname..." oninput="applyFarmFilters()">
+                </div>
+                
+                <div class="filter-group">
+                    <label>Search Location:</label>
+                    <input type="text" id="farm-location-search" placeholder="Enter location..." oninput="applyFarmFilters()">
+                </div>
+                
+                <div class="filter-group">
+                    <label>&nbsp;</label>
+                    <button class="secondary" onclick="clearFarmFilters()">🧹 Clear Filters</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2 class="section-title">📈 Statistics</h2>
+            <div class="stats-panel">
+                <div class="stat-item">
+                    <div class="stat-value" id="total-farms">0</div>
+                    <div class="stat-label">Total Farms</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="solo-farms">0</div>
+                    <div class="stat-label">Solo Farms</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="team-farms">0</div>
+                    <div class="stat-label">Team Farms</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="filtered-farms">0</div>
+                    <div class="stat-label">Filtered Farms</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2 class="section-title">📝 Debug Log</h2>
+            <div id="log" class="log">Click buttons above to see logs...</div>
+        </div>
+        
+        <div class="test-section">
+            <h2 class="section-title">📋 Farm Records</h2>
+            <div id="farm-records-container" class="farm-list">
+                <p>No farm records found. Click "Load Sample Data" to populate.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Debug log function
+        function debugLog(message) {
+            const logElement = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+            logEntry.innerHTML = `<span class="log-timestamp">[${timestamp}]</span> <span class="log-message">${message}</span>`;
+            logElement.appendChild(logEntry);
+            logElement.scrollTop = logElement.scrollHeight;
+            console.log(`[${timestamp}] ${message}`);
+        }
+        
+        // Sample farm data
+        const sampleFarms = [
+            {
+                id: '1',
+                type: 'solo',
+                date: '2023-05-15',
+                time: 45,
+                location: 'Dragon Valley',
+                totalValue: 1500,
+                items: [
+                    { name: 'Dragon Scale', totalQuantity: 5, soldQuantity: 3, remainingQuantity: 2, estimatedValue: 200, soldPrice: 250, totalSoldValue: 750, totalRemainingValue: 400 }
+                ]
+            },
+            {
+                id: '2',
+                type: 'team',
+                date: '2023-05-16',
+                time: 60,
+                location: 'Ice Cave',
+                totalValue: 3000,
+                members: [
+                    { nickname: 'Player1', share: 50, amount: 1500, paid: true },
+                    { nickname: 'Player2', share: 30, amount: 900, paid: false },
+                    { nickname: 'Player3', share: 20, amount: 600, paid: true }
+                ],
+                items: [
+                    { name: 'Ice Crystal', totalQuantity: 10, soldQuantity: 7, remainingQuantity: 3, estimatedValue: 150, soldPrice: 180, totalSoldValue: 1260, totalRemainingValue: 450 }
+                ]
+            },
+            {
+                id: '3',
+                type: 'solo',
+                date: '2023-05-17',
+                time: 30,
+                location: 'Forest',
+                totalValue: 800,
+                items: [
+                    { name: 'Herb', totalQuantity: 20, soldQuantity: 15, remainingQuantity: 5, estimatedValue: 40, soldPrice: 50, totalSoldValue: 750, totalRemainingValue: 200 }
+                ]
+            },
+            {
+                id: '4',
+                type: 'team',
+                date: '2023-05-18',
+                time: 90,
+                location: 'Desert',
+                totalValue: 5000,
+                members: [
+                    { nickname: 'Player1', share: 40, amount: 2000, paid: true },
+                    { nickname: 'Player4', share: 35, amount: 1750, paid: true },
+                    { nickname: 'Player5', share: 25, amount: 1250, paid: false }
+                ],
+                items: [
+                    { name: 'Gold Ore', totalQuantity: 25, soldQuantity: 20, remainingQuantity: 5, estimatedValue: 200, soldPrice: 220, totalSoldValue: 4400, totalRemainingValue: 1000 }
+                ]
+            },
+            {
+                id: '5',
+                type: 'team',
+                date: '2023-05-19',
+                time: 45,
+                location: 'Dragon Valley',
+                totalValue: 2500,
+                members: [
+                    { nickname: 'Player2', share: 60, amount: 1500, paid: false },
+                    { nickname: 'Player6', share: 40, amount: 1000, paid: true }
+                ],
+                items: [
+                    { name: 'Dragon Scale', totalQuantity: 8, soldQuantity: 6, remainingQuantity: 2, estimatedValue: 200, soldPrice: 250, totalSoldValue: 1500, totalRemainingValue: 400 }
+                ]
+            }
+        ];
+        
+        // Format number with thousand separators
+        function formatNumber(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        }
+        
+        // Update statistics display
+        function updateStats() {
+            const allFarms = window.currentFarms || [];
+            const filteredFarms = window.filteredFarms || allFarms;
+            
+            const totalFarms = allFarms.length;
+            const soloFarms = allFarms.filter(farm => farm.type === 'solo').length;
+            const teamFarms = allFarms.filter(farm => farm.type === 'team').length;
+            const filteredCount = filteredFarms.length;
+            
+            document.getElementById('total-farms').textContent = totalFarms;
+            document.getElementById('solo-farms').textContent = soloFarms;
+            document.getElementById('team-farms').textContent = teamFarms;
+            document.getElementById('filtered-farms').textContent = filteredCount;
+            
+            debugLog(`Stats updated - Total: ${totalFarms}, Solo: ${soloFarms}, Team: ${teamFarms}, Filtered: ${filteredCount}`);
+        }
+        
+        // Apply farm filters
+        function applyFarmFilters() {
+            debugLog('Applying farm filters...');
+            
+            // Get current farms (stored when loaded)
+            const farms = window.currentFarms || [];
+            debugLog(`Current farms available for filtering: ${farms.length}`);
+            
+            // Get filter values
+            const typeFilter = document.getElementById('farm-type-filter').value;
+            const playerSearch = document.getElementById('farm-player-search').value.toLowerCase();
+            const locationSearch = document.getElementById('farm-location-search').value.toLowerCase();
+            
+            debugLog(`Filter values - Type: ${typeFilter}, Player: "${playerSearch}", Location: "${locationSearch}"`);
+            
+            // Apply filters
+            let filteredFarms = [...farms]; // Create a copy
+            
+            // Filter by type
+            if (typeFilter !== 'all') {
+                debugLog(`Applying type filter: ${typeFilter}`);
+                filteredFarms = filteredFarms.filter(farm => farm.type === typeFilter);
+                debugLog(`Farms after type filter: ${filteredFarms.length}`);
+            }
+            
+            // Filter by player (for team farms)
+            if (playerSearch) {
+                debugLog(`Applying player filter: "${playerSearch}"`);
+                filteredFarms = filteredFarms.filter(farm => {
+                    if (farm.type === 'solo') {
+                        return false; // Solo farms don't have players
+                    }
+                    return farm.members && farm.members.some(member => 
+                        member.nickname && member.nickname.toLowerCase().includes(playerSearch)
+                    );
+                });
+                debugLog(`Farms after player filter: ${filteredFarms.length}`);
+            }
+            
+            // Filter by location
+            if (locationSearch) {
+                debugLog(`Applying location filter: "${locationSearch}"`);
+                filteredFarms = filteredFarms.filter(farm => 
+                    farm.location && farm.location.toLowerCase().includes(locationSearch)
+                );
+                debugLog(`Farms after location filter: ${filteredFarms.length}`);
+            }
+            
+            debugLog(`Final filtered farms count: ${filteredFarms.length}`);
+            
+            // Store filtered farms for stats
+            window.filteredFarms = filteredFarms;
+            
+            // Display filtered results
+            displayFarmRecords(filteredFarms);
+            updateStats();
+        }
+        
+        // Clear all filters
+        function clearFarmFilters() {
+            debugLog('Clearing all farm filters');
+            document.getElementById('farm-type-filter').value = 'all';
+            document.getElementById('farm-player-search').value = '';
+            document.getElementById('farm-location-search').value = '';
+            applyFarmFilters();
+        }
+        
+        // Display farm records
+        function displayFarmRecords(farms) {
+            const container = document.getElementById('farm-records-container');
+            
+            debugLog(`Displaying farm records: ${farms.length}`);
+            
+            if (farms.length === 0) {
+                container.innerHTML = '<p>No farm records found matching the current filters.</p>';
+                return;
+            }
+            
+            // Sort by date descending
+            farms.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            container.innerHTML = farms.map(farm => `
+                <div class="farm-record" data-farm-id="${farm.id}">
+                    <div class="farm-record-header">
+                        <div>
+                            <span class="farm-record-type ${farm.type}">${farm.type === 'solo' ? '👤 Solo Farm' : '👥 Team Farm'}</span>
+                            <h4>${farm.location}</h4>
+                            <p>${farm.date} • ${farm.time} minutes</p>
+                        </div>
+                        <div>
+                            <h3>${formatNumber(farm.totalValue)}</h3>
+                            <p>Total Value</p>
+                        </div>
+                    </div>
+                    
+                    ${farm.type === 'team' ? `
+                        <div class="team-members-list">
+                            ${farm.members.map(member => `
+                                <div class="team-member-badge ${member.paid ? 'paid' : 'unpaid'}">
+                                    ${member.nickname} (${member.share}%) - ${formatNumber(member.amount)}
+                                    <span class="payment-status ${member.paid ? 'paid' : 'unpaid'}">
+                                        ${member.paid ? '✓ Paid' : '⏳ Unpaid'}
+                                    </span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                    
+                    <div class="farm-items-list">
+                        <h5>Items:</h5>
+                        ${farm.items.map(item => `
+                            <div class="farm-item-row">
+                                <span><strong>${item.name}</strong></span>
+                                <span>Total: ${item.totalQuantity} | Sold: ${item.soldQuantity} | Remaining: ${item.remainingQuantity}</span>
+                                <span>Est. Value: ${formatNumber(item.estimatedValue)} | Sold Price: ${formatNumber(item.soldPrice)}</span>
+                                <span class="payment-status">
+                                    💰 Total: ${formatNumber(item.totalSoldValue + item.totalRemainingValue)}
+                                </span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Load sample data
+        function loadSampleData() {
+            debugLog('Loading sample data...');
+            window.currentFarms = [...sampleFarms]; // Create a copy
+            window.filteredFarms = [...sampleFarms]; // Create a copy
+            displayFarmRecords(sampleFarms);
+            updateStats();
+            debugLog('Sample data loaded successfully');
+        }
+        
+        // Clear all data
+        function clearAllData() {
+            debugLog('Clearing all data...');
+            window.currentFarms = [];
+            window.filteredFarms = [];
+            document.getElementById('farm-records-container').innerHTML = '<p>No farm records found. Click "Load Sample Data" to populate.</p>';
+            updateStats();
+            debugLog('All data cleared');
+        }
+        
+        // Show current state
+        function showCurrentState() {
+            const currentFarms = window.currentFarms || [];
+            const filteredFarms = window.filteredFarms || [];
+            debugLog(`Current state - All farms: ${currentFarms.length}, Filtered farms: ${filteredFarms.length}`);
+            debugLog(`Current filters - Type: ${document.getElementById('farm-type-filter').value}, Player: "${document.getElementById('farm-player-search').value}", Location: "${document.getElementById('farm-location-search').value}"`);
+        }
+        
+        // Run filter test
+        function runFilterTest() {
+            debugLog('Running comprehensive filter test...');
+            
+            // Test 1: Type filter
+            debugLog('Test 1: Type filter');
+            document.getElementById('farm-type-filter').value = 'solo';
+            applyFarmFilters();
+            setTimeout(() => {
+                const soloFarms = (window.filteredFarms || []).filter(f => f.type === 'solo').length;
+                debugLog(`Result: Found ${soloFarms} solo farms`);
+                
+                // Test 2: Player filter
+                debugLog('Test 2: Player filter');
+                document.getElementById('farm-type-filter').value = 'all';
+                document.getElementById('farm-player-search').value = 'Player1';
+                applyFarmFilters();
+                setTimeout(() => {
+                    const player1Farms = (window.filteredFarms || []).filter(f => 
+                        f.type === 'team' && f.members.some(m => m.nickname.includes('Player1'))
+                    ).length;
+                    debugLog(`Result: Found ${player1Farms} farms with Player1`);
+                    
+                    // Test 3: Location filter
+                    debugLog('Test 3: Location filter');
+                    document.getElementById('farm-player-search').value = '';
+                    document.getElementById('farm-location-search').value = 'Dragon';
+                    applyFarmFilters();
+                    setTimeout(() => {
+                        const dragonFarms = (window.filteredFarms || []).filter(f => 
+                            f.location.includes('Dragon')
+                        ).length;
+                        debugLog(`Result: Found ${dragonFarms} farms in Dragon locations`);
+                        
+                        // Test 4: Combined filters
+                        debugLog('Test 4: Combined filters');
+                        document.getElementById('farm-type-filter').value = 'team';
+                        document.getElementById('farm-player-search').value = 'Player2';
+                        document.getElementById('farm-location-search').value = '';
+                        applyFarmFilters();
+                        setTimeout(() => {
+                            const combinedFarms = (window.filteredFarms || []).length;
+                            debugLog(`Result: Found ${combinedFarms} farms matching all filters`);
+                            
+                            // Test 5: Clear filters
+                            debugLog('Test 5: Clear filters');
+                            clearFarmFilters();
+                            setTimeout(() => {
+                                const allFarms = (window.filteredFarms || []).length;
+                                debugLog(`Result: Found ${allFarms} farms after clearing filters`);
+                                debugLog('Filter test completed');
+                            }, 100);
+                        }, 100);
+                    }, 100);
+                }, 100);
+            }, 100);
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            debugLog('Detailed farm filter test page loaded');
+            debugLog('Click "Load Sample Data" to begin testing');
+        });
+    </script>
+</body>
+</html>

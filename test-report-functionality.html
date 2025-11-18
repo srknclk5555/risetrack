@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Report Functionality</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test Report Functionality</h1>
+    
+    <div class="test-section">
+        <h2>Date Range Selection</h2>
+        <div class="date-selector">
+            <label>Start Date:</label>
+            <input type="date" id="report-start-date" value="2023-05-01">
+            <label>End Date:</label>
+            <input type="date" id="report-end-date" value="2023-05-31">
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test Buttons</h2>
+        <button onclick="testPlayerReport()">Test Player Report</button>
+        <button onclick="testModalDisplay()">Test Modal Display</button>
+    </div>
+    
+    <!-- Player Report Modal -->
+    <div id="player-report-modal" class="modal">
+        <div class="modal-content detailed-report-content">
+            <span class="close" onclick="closePlayerReportModal()">&times;</span>
+            <h2>Player Specific Report</h2>
+            <div id="player-report-container">
+                <!-- Player report content will be generated here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Include necessary functions from script.js
+        function formatNumber(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        }
+
+        function capitalize(str) {
+            return str.charAt(0).toUpperCase() + str.slice(1);
+        }
+
+        function getLocalDateString(date) {
+            return date.toISOString().split('T')[0];
+        }
+
+        function closePlayerReportModal() {
+            const modal = document.getElementById('player-report-modal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // Test player report functionality
+        function testPlayerReport() {
+            console.log('Testing player report functionality');
+            
+            // Mock data for testing
+            const testData = [
+                {
+                    type: 'team',
+                    date: '2023-05-15',
+                    time: 60,
+                    totalValue: 1000,
+                    members: [
+                        { nickname: 'TestPlayer', amount: 500 },
+                        { nickname: 'Player2', amount: 300 },
+                        { nickname: 'Player3', amount: 200 }
+                    ],
+                    materials: [
+                        { name: 'Iron Ore', amount: 10, total: 500 },
+                        { name: 'Copper Ore', amount: 15, total: 300 },
+                        { name: 'Silver Ore', amount: 5, total: 200 }
+                    ]
+                },
+                {
+                    type: 'gathering',
+                    date: '2023-05-16',
+                    time: 45,
+                    profession: 'Mining',
+                    materials: [
+                        { name: 'Iron Ore', amount: 20, total: 1000 }
+                    ]
+                }
+            ];
+            
+            const playerName = 'TestPlayer';
+            const startDate = document.getElementById('report-start-date').value;
+            const endDate = document.getElementById('report-end-date').value;
+            
+            console.log('Test data:', testData);
+            console.log('Player name:', playerName);
+            console.log('Date range:', startDate, 'to', endDate);
+            
+            // Generate report HTML
+            const reportHTML = generatePlayerReportHTML(testData, playerName, startDate, endDate);
+            console.log('Generated report HTML:', reportHTML);
+            
+            // Display in modal
+            const container = document.getElementById('player-report-container');
+            const modal = document.getElementById('player-report-modal');
+            
+            if (container && modal) {
+                container.innerHTML = reportHTML;
+                modal.style.display = 'block';
+                console.log('Modal displayed successfully');
+            } else {
+                console.error('Could not find modal elements');
+            }
+        }
+
+        // Test modal display
+        function testModalDisplay() {
+            const modal = document.getElementById('player-report-modal');
+            if (modal) {
+                modal.style.display = 'block';
+                console.log('Modal displayed');
+            } else {
+                console.error('Modal not found');
+            }
+        }
+
+        // Generate Player Report HTML (simplified version)
+        function generatePlayerReportHTML(data, playerName, startDate, endDate) {
+            // Simple statistics calculation
+            let totalActivities = 0;
+            let totalEarnings = 0;
+            let totalTime = 0;
+            
+            data.forEach(item => {
+                if (item.type === 'team') {
+                    // Check if player is in the team
+                    const playerInTeam = item.members.find(member => 
+                        member.nickname && member.nickname.toLowerCase() === playerName.toLowerCase());
+                    
+                    if (playerInTeam) {
+                        totalActivities++;
+                        totalEarnings += playerInTeam.amount || 0;
+                        totalTime += item.time || 0;
+                    }
+                }
+            });
+            
+            let html = `
+                <h2>Player Report: ${playerName}</h2>
+                <h3>Period: ${startDate} to ${endDate}</h3>
+                
+                <!-- Summary Cards -->
+                <div class="detailed-report-grid">
+                    <div class="detailed-report-card">
+                        <h4>Total Activities</h4>
+                        <div class="value">${totalActivities}</div>
+                        <div class="label">Participated</div>
+                    </div>
+                    <div class="detailed-report-card">
+                        <h4>Total Earnings</h4>
+                        <div class="value">${formatNumber(totalEarnings)}</div>
+                        <div class="label">Net Profit</div>
+                    </div>
+                    <div class="detailed-report-card">
+                        <h4>Total Time</h4>
+                        <div class="value">${totalTime}</div>
+                        <div class="label">Minutes</div>
+                    </div>
+                </div>
+                
+                <div class="detailed-report-section">
+                    <h3>Test Data</h3>
+                    <p>This is a test report to verify that the functionality is working correctly.</p>
+                </div>
+            `;
+            
+            return html;
+        }
+    </script>
+</body>
+</html>
