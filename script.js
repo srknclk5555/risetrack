@@ -1016,7 +1016,7 @@ function loadDataForDateRange(startDate, endDate, callback) {
         });
         
         // Filter farm data to only include main player's earnings
-        const mainCharacter = localStorage.getItem('mainCharacter');
+        const mainCharacter = getMainCharacter();
         const finalFilteredData = filteredData.map(item => {
             // For team farms, filter to only include main player's share
             if (item.type === 'team' && item.members && mainCharacter) {
@@ -1057,7 +1057,7 @@ function loadDataForDateRange(startDate, endDate, callback) {
             
             if (allData) {
                 // Get main character for filtering farm data
-                const mainCharacter = localStorage.getItem('mainCharacter');
+                const mainCharacter = getMainCharacter();
                 
                 // Convert Firebase data structure to array
                 Object.keys(allData).forEach(date => {
@@ -1128,7 +1128,7 @@ function loadDataForDateRange(startDate, endDate, callback) {
             });
                     
             // Filter farm data to only include main player's earnings
-            const mainCharacter = localStorage.getItem('mainCharacter');
+            const mainCharacter = getMainCharacter();
             const finalFilteredData = filteredData.map(item => {
                 // For team farms, filter to only include main player's share
                 if (item.type === 'team' && item.members && mainCharacter) {
@@ -1213,7 +1213,7 @@ function generateReport(reportType) {
             
             if (allData) {
                 // Get the main character from localStorage
-                const mainCharacter = localStorage.getItem('mainCharacter');
+                const mainCharacter = getMainCharacter();
                 
                 // Convert Firebase data structure to array
                 Object.keys(allData).forEach(date => {
@@ -1716,7 +1716,7 @@ function generatePlayerReport(playerName) {
     
     // If playerName is 'main', get the main character from localStorage
     if (playerName === 'main') {
-        const mainCharacter = localStorage.getItem('mainCharacter');
+        const mainCharacter = getMainCharacter();
         if (!mainCharacter) {
             alert('Please set your main character in the Admin panel first!');
             return;
@@ -2122,7 +2122,7 @@ function calculatePlayerItemEarnings(data, playerName) {
     const itemEarnings = {};
     
     // Get the main character from localStorage
-    const mainCharacter = localStorage.getItem('mainCharacter');
+    const mainCharacter = getMainCharacter();
     const targetPlayer = playerName === 'main' && mainCharacter ? mainCharacter : playerName;
     
     // Process each data item
@@ -2200,7 +2200,7 @@ function calculatePlayerGatheringStats(data, playerName) {
     const gatheringStats = {};
     
     // Get the main character from localStorage
-    const mainCharacter = localStorage.getItem('mainCharacter');
+    const mainCharacter = getMainCharacter();
     const targetPlayer = playerName === 'main' && mainCharacter ? mainCharacter : playerName;
     
     // Process each data item
@@ -2264,7 +2264,7 @@ function calculatePlayerFarmStats(data, playerName) {
     const farmStats = {};
     
     // Get the main character from localStorage
-    const mainCharacter = localStorage.getItem('mainCharacter');
+    const mainCharacter = getMainCharacter();
     const targetPlayer = playerName === 'main' && mainCharacter ? mainCharacter : playerName;
     
     // Process each data item
@@ -2743,7 +2743,7 @@ function calculatePlayerStatistics(data, playerName) {
     stats.totalActivitiesInSystem = data.filter(item => item.type === 'team').length;
     
     // Get the main character from localStorage
-    const mainCharacter = localStorage.getItem('mainCharacter');
+    const mainCharacter = getMainCharacter();
     
     // Process each data item
     data.forEach(item => {
@@ -3339,6 +3339,12 @@ function formatNumber(num) {
 
 // ========== ADMIN FUNCTIONS ==========
 
+// Helper function to get main character with user-specific key
+function getMainCharacter() {
+    const userSpecificKey = userId ? `mainCharacter_${userId}` : 'mainCharacter';
+    return localStorage.getItem(userSpecificKey);
+}
+
 // Save Main Character
 function saveMainCharacter() {
     const select = document.getElementById('main-character-select');
@@ -3349,8 +3355,9 @@ function saveMainCharacter() {
         return;
     }
     
-    // Save to localStorage
-    localStorage.setItem('mainCharacter', selectedPlayer);
+    // Save to localStorage with user-specific key
+    const userSpecificKey = userId ? `mainCharacter_${userId}` : 'mainCharacter';
+    localStorage.setItem(userSpecificKey, selectedPlayer);
     
     // Update UI
     document.getElementById('current-main-character-name').textContent = selectedPlayer;
@@ -3361,7 +3368,7 @@ function saveMainCharacter() {
 
 // Load Main Character
 function loadMainCharacter() {
-    const mainCharacter = localStorage.getItem('mainCharacter');
+    const mainCharacter = getMainCharacter();
     
     if (mainCharacter) {
         document.getElementById('current-main-character-name').textContent = mainCharacter;
